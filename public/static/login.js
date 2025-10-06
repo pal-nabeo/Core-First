@@ -54,12 +54,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // エラー表示関数
     function showError(message) {
-        errorText.textContent = message;
+        // エラー用スタイルにリセット
+        errorMessage.className = 'mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md';
+        errorText.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
         errorMessage.classList.remove('hidden');
         
-        // 3秒後に自動的に非表示
+        // 5秒後に自動的に非表示
         setTimeout(() => {
-            errorMessage.classList.add('hidden');
+            hideError();
         }, 5000);
     }
 
@@ -126,17 +133,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 // ログイン成功
                 const redirectUrl = result.redirect_url || '/dashboard';
                 
-                // 成功メッセージを短時間表示してからリダイレクト
-                const successDiv = document.createElement('div');
-                successDiv.className = 'mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-md';
-                successDiv.innerHTML = `
+                // 既存の成功メッセージを削除
+                const existingSuccess = document.querySelector('.bg-green-50');
+                if (existingSuccess) {
+                    existingSuccess.remove();
+                }
+                
+                // エラーメッセージを非表示にして成功メッセージに変換
+                hideError();
+                errorMessage.className = 'mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-md';
+                errorText.innerHTML = `
                     <div class="flex items-center">
                         <i class="fas fa-check-circle mr-2"></i>
                         <span>ログインしました。リダイレクト中...</span>
                     </div>
                 `;
-                
-                errorMessage.parentNode.insertBefore(successDiv, errorMessage);
+                errorMessage.classList.remove('hidden');
                 
                 // 少し待ってからリダイレクト
                 setTimeout(() => {
@@ -173,15 +185,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // セッションチェック - 既にログインしている場合はリダイレクト
+    // セッションチェック - 既にログインしている場合はサイレントリダイレクト
     fetch('/api/auth/me', {
         credentials: 'include'
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // 既にログイン済み
-            window.location.href = '/dashboard';
+            // 既にログイン済みの場合はメッセージなしで即座にリダイレクト
+            window.location.replace('/dashboard');
         }
     })
     .catch(error => {
