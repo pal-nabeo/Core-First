@@ -48,6 +48,8 @@ app.use('/favicon.ico', serveStatic());
 app.route('/api/auth', auth);
 import { test } from './routes/test';
 app.route('/api/test', test);
+import { tenant } from './routes/tenant';
+app.route('/api/tenant', tenant);
 
 // API 基本情報
 app.get('/api', (c) => {
@@ -159,22 +161,12 @@ app.get('/login', (c) => {
                     </div>
                 </div>
 
-                <!-- 企業識別（開発用） -->
-                <div id="tenant-field">
-                    <label for="tenant_subdomain" class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-building mr-1"></i>
-                        企業識別子
-                    </label>
-                    <select 
-                        id="tenant_subdomain" 
-                        name="tenant_subdomain"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                        <option value="">企業を選択...</option>
-                        <option value="abc-logistics">ABC物流株式会社</option>
-                        <option value="xyz-delivery">XYZ配送サービス</option>
-                        <option value="demo-company" selected>デモ物流企業</option>
-                    </select>
+                <!-- 企業情報表示（サブドメインから自動判定） -->
+                <div id="tenant-info" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <div class="flex items-center text-sm text-blue-700">
+                        <i class="fas fa-building mr-2"></i>
+                        <span id="tenant-display">企業情報を取得中...</span>
+                    </div>
                 </div>
 
                 <!-- オプション -->

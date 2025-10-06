@@ -38,7 +38,7 @@ function generateSessionToken(): string {
 auth.post('/login', async (c) => {
   try {
     const body = await c.req.json();
-    const { email, password, remember_me, tenant_subdomain } = body;
+    const { email, password, remember_me } = body;
     
     // 基本バリデーション
     if (!email || !password) {
@@ -59,8 +59,8 @@ auth.post('/login', async (c) => {
     const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
     const userAgent = c.req.header('User-Agent') || 'unknown';
 
-    // テナント取得
-    let subdomain = tenant_subdomain || c.get('tenantSubdomain') || 'demo-company';
+    // テナント取得（サブドメインから自動判定）
+    let subdomain = c.get('tenantSubdomain') || 'demo-company';
     
     const tenant = await c.env.DB.prepare(`
       SELECT * FROM tenants WHERE subdomain = ? AND status = 'active'
@@ -276,6 +276,44 @@ auth.get('/me', async (c) => {
     return c.json({ 
       success: false, 
       error: 'セッション確認中にエラーが発生しました。' 
+    }, 500);
+  }
+});
+
+/**
+ * テナント情報取得
+ * GET /api/auth/tenant-info
+ */
+auth.get('/tenant-info', async (c) => {
+  try {
+    const tenantSubdomain = c.get('tenantSubdomain') || 'demo-company';
+    
+    const tenant = await c.env.DB.prepare(`
+      SELECT id, name, subdomain, status FROM tenants 
+      WHERE subdomain = ? AND status = 'active'
+    `).bind(tenantSubdomain).first();
+    
+    if (!tenant) {
+      return c.json({ 
+        success: false, 
+        error: `テナントが見つかりません: ${tenantSubdomain}` 
+      }, 404);
+    }
+
+    return c.json({
+      success: true,
+      tenant: {
+        id: tenant.id,
+        name: tenant.name,
+        subdomain: tenant.subdomain
+      }
+    });
+
+  } catch (error) {
+    console.error('Tenant info error:', error);
+    return c.json({ 
+      success: false, 
+      error: 'テナント情報の取得中にエラーが発生しました。' 
     }, 500);
   }
 });

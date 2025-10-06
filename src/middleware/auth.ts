@@ -79,13 +79,36 @@ export async function requireSuperAdmin(c: Context<{ Bindings: CloudflareBinding
  */
 export async function tenantMiddleware(c: Context<{ Bindings: CloudflareBindings }>, next: Next) {
   const url = new URL(c.req.url);
-  const subdomain = url.hostname.split('.')[0];
-  
-  // 開発環境やlocalhostでのテスト用
-  let tenantSubdomain = subdomain;
-  if (url.hostname === 'localhost' || url.hostname.includes('127.0.0.1')) {
-    // クエリパラメータまたはヘッダーからテナントを取得
-    tenantSubdomain = c.req.query('tenant') || c.req.header('X-Tenant-Subdomain') || 'demo-company';
+  let tenantSubdomain = 'demo-company'; // デフォルト
+
+  // 本番環境: サブドメインから判定
+  if (url.hostname.includes('.pages.dev') || url.hostname.includes('.workers.dev')) {
+    const subdomain = url.hostname.split('.')[0];
+    tenantSubdomain = subdomain;
+  }
+  // 開発環境: 複数の方法でテナント判定
+  else if (url.hostname === 'localhost' || url.hostname.includes('127.0.0.1') || url.hostname.includes('.e2b.dev')) {
+    // 1. URLパスからテナント判定 (/tenant/demo-company/login)
+    const pathMatch = url.pathname.match(/^\/tenant\/([^\/]+)/);
+    if (pathMatch) {
+      tenantSubdomain = pathMatch[1];
+    }
+    // 2. クエリパラメータから判定 (?tenant=demo-company)
+    else if (c.req.query('tenant')) {
+      tenantSubdomain = c.req.query('tenant');
+    }
+    // 3. ヘッダーから判定
+    else if (c.req.header('X-Tenant-Subdomain')) {
+      tenantSubdomain = c.req.header('X-Tenant-Subdomain');
+    }
+    // 4. デフォルト値を使用
+  }
+  // その他の環境: サブドメインから判定
+  else {
+    const subdomain = url.hostname.split('.')[0];
+    if (subdomain && subdomain !== 'www') {
+      tenantSubdomain = subdomain;
+    }
   }
 
   c.set('tenantSubdomain', tenantSubdomain);

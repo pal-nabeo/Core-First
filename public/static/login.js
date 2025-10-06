@@ -9,20 +9,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorText = document.getElementById('error-text');
     const togglePassword = document.getElementById('toggle-password');
     const passwordInput = document.getElementById('password');
-    const tenantField = document.getElementById('tenant-field');
-    const tenantSelect = document.getElementById('tenant_subdomain');
+    const tenantDisplay = document.getElementById('tenant-display');
 
-    // テナント選択フィールドを常に表示（開発環境用）
-    tenantField.classList.remove('hidden');
-    
-    // URLパラメータからテナントを取得、なければデフォルト値を設定
-    const urlParams = new URLSearchParams(window.location.search);
-    const tenantParam = urlParams.get('tenant');
-    if (tenantParam) {
-        tenantSelect.value = tenantParam;
-    } else if (!tenantSelect.value) {
-        tenantSelect.value = 'demo-company'; // デフォルト値
+    // サブドメインから企業情報を取得
+    let currentTenant = null;
+    async function loadTenantInfo() {
+        try {
+            const response = await fetch('/api/tenant/info', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.tenant) {
+                    currentTenant = result.tenant;
+                    tenantDisplay.textContent = `${result.tenant.name} (${result.tenant.subdomain})`;
+                } else {
+                    tenantDisplay.textContent = 'テナント情報が見つかりません';
+                    tenantDisplay.parentElement.className = 'mb-4 p-3 bg-red-50 border border-red-200 rounded-md';
+                    tenantDisplay.parentElement.querySelector('span').className = 'text-red-700';
+                }
+            } else {
+                tenantDisplay.textContent = 'テナント情報の取得に失敗しました';
+            }
+        } catch (error) {
+            console.error('Tenant info error:', error);
+            tenantDisplay.textContent = 'デフォルトテナント (demo-company)';
+        }
     }
+
+    // 初期化時にテナント情報を取得
+    loadTenantInfo();
 
     // パスワード表示切替
     togglePassword.addEventListener('click', function() {
@@ -78,8 +96,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const loginData = {
             email: formData.get('email'),
             password: formData.get('password'),
-            remember_me: formData.get('remember_me') === 'on',
-            tenant_subdomain: formData.get('tenant_subdomain') || undefined
+            remember_me: formData.get('remember_me') === 'on'
+            // tenant_subdomain は削除 - サブドメインから自動判定
         };
 
         try {
@@ -87,8 +105,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-Tenant-Subdomain': loginData.tenant_subdomain || ''
+                    'Content-Type': 'application/json'
+                    // X-Tenant-Subdomainヘッダーを削除 - サブドメインから自動判定
                 },
                 credentials: 'include',
                 body: JSON.stringify(loginData)

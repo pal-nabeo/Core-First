@@ -202,7 +202,7 @@ npm run test            # APIテスト（curl）
 
 ## デモユーザーアカウント
 
-### テストアカウント一覧
+### テストアカウント一覧（サブドメイン方式）
 
 | 企業 | メールアドレス | パスワード | 権限 | 用途 |
 |------|----------------|------------|------|------|
@@ -223,11 +223,17 @@ npm run test            # APIテスト（curl）
 
 ### 認証 API
 ```
-POST   /api/auth/login           # ログイン
+POST   /api/auth/login           # ログイン（サブドメイン自動判定）
 POST   /api/auth/logout          # ログアウト
 GET    /api/auth/me              # セッション確認
 POST   /api/auth/password/reset  # パスワードリセット要求
 POST   /api/auth/password/reset/confirm # パスワードリセット実行
+```
+
+### テナント API（NEW）
+```
+GET    /api/tenant/info          # 現在のテナント情報取得
+GET    /api/tenant/list          # 利用可能テナント一覧
 ```
 
 ### テスト API（開発用）
