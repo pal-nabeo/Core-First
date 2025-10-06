@@ -53,7 +53,13 @@ app.route('/api/test', test);
 import { tenant } from './routes/tenant';
 app.route('/api/tenant', tenant);
 
+// ユーザーアカウント管理API
+import accountApi from './routes/account';
+app.route('/api/account', accountApi);
+
 // 管理者API
+import adminApi from './routes/admin';
+app.route('/api/admin', adminApi);
 app.route('/api/users', usersApi);
 app.route('/api/licenses', licensesApi);
 import invitationsApi from './routes/invitations';
@@ -668,6 +674,29 @@ app.get('/dashboard', (c) => {
                                 <div class="text-xs mt-0.5">請求・支払い履歴</div>
                             </div>
                         </a>
+
+                        <!-- アカウント管理セクション -->
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-purple-50 rounded-lg mx-2">
+                            <i class="fas fa-user-cog mr-2 text-purple-600"></i>アカウント
+                        </div>
+                        
+                        <!-- プロフィール編集 -->
+                        <a href="#" onclick="showSection('profile')" class="nav-item" data-section="profile">
+                            <i class="fas fa-user-edit mr-3 text-lg text-purple-600"></i>
+                            <div class="flex-1">
+                                <span class="font-medium">プロフィール</span>
+                                <div class="text-xs mt-0.5">基本情報・設定変更</div>
+                            </div>
+                        </a>
+                        
+                        <!-- セキュリティ設定 -->
+                        <a href="#" onclick="showSection('security')" class="nav-item" data-section="security">
+                            <i class="fas fa-shield-alt mr-3 text-lg text-purple-600"></i>
+                            <div class="flex-1">
+                                <span class="font-medium">セキュリティ</span>
+                                <div class="text-xs mt-0.5">パスワード・2FA設定</div>
+                            </div>
+                        </a>
                     </nav>
 
                     <!-- ユーザー情報 -->
@@ -1113,6 +1142,189 @@ app.get('/dashboard', (c) => {
                             <div class="p-6">
                                 <div id="available-plans" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                     <!-- プランカードがJavaScriptで動的に生成される -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- プロフィール編集セクション -->
+                    <div id="profile-section" class="content-section hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">プロフィール管理</h2>
+                                <p class="text-gray-600">基本情報と個人設定を管理します</p>
+                            </div>
+                            <button onclick="loadProfile()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">
+                                <i class="fas fa-sync mr-2"></i>
+                                更新
+                            </button>
+                        </div>
+
+                        <!-- 基本情報カード -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                            <div class="p-6 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <i class="fas fa-user mr-2 text-purple-600"></i>
+                                    基本情報
+                                </h3>
+                            </div>
+                            <div class="p-6">
+                                <form id="profile-form">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <!-- 表示名 -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">表示名 <span class="text-red-500">*</span></label>
+                                            <input type="text" id="display-name" name="displayName" required
+                                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                                   placeholder="山田 太郎">
+                                        </div>
+                                        
+                                        <!-- メールアドレス -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
+                                            <input type="email" id="email" name="email" readonly
+                                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-500"
+                                                   placeholder="yamada@company.com">
+                                            <p class="text-xs text-gray-500 mt-1">メールアドレスは変更できません</p>
+                                        </div>
+                                        
+                                        <!-- 電話番号 -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">電話番号</label>
+                                            <input type="tel" id="phone-number" name="phoneNumber"
+                                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                                   placeholder="090-1234-5678">
+                                        </div>
+                                        
+                                        <!-- 言語設定 -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">言語</label>
+                                            <select id="locale" name="locale" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                                <option value="ja-JP">日本語</option>
+                                                <option value="en-US">English (US)</option>
+                                                <option value="zh-CN">中文 (简体)</option>
+                                                <option value="ko-KR">한국어</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- タイムゾーン -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">タイムゾーン</label>
+                                            <select id="timezone" name="timezone" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                                <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                                                <option value="UTC">UTC</option>
+                                                <option value="America/New_York">America/New_York (EST)</option>
+                                                <option value="Europe/London">Europe/London (GMT)</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- アカウント情報 -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">アカウント作成日</label>
+                                            <input type="text" id="created-at" readonly
+                                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-500">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-6 flex justify-end">
+                                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg">
+                                            <i class="fas fa-save mr-2"></i>
+                                            プロフィールを更新
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- ロール・権限情報 -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                            <div class="p-6 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <i class="fas fa-shield-alt mr-2 text-green-600"></i>
+                                    ロール・権限
+                                </h3>
+                            </div>
+                            <div class="p-6">
+                                <div id="user-roles" class="space-y-3">
+                                    <!-- ロール情報がJavaScriptで挿入される -->
+                                    <p class="text-gray-500">読み込み中...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セキュリティ設定セクション -->
+                    <div id="security-section" class="content-section hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">セキュリティ設定</h2>
+                                <p class="text-gray-600">パスワードと2要素認証の設定を管理します</p>
+                            </div>
+                        </div>
+
+                        <!-- パスワード変更 -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                            <div class="p-6 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <i class="fas fa-lock mr-2 text-red-600"></i>
+                                    パスワード変更
+                                </h3>
+                            </div>
+                            <div class="p-6">
+                                <form id="password-form">
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">現在のパスワード <span class="text-red-500">*</span></label>
+                                            <input type="password" name="currentPassword" required
+                                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">新しいパスワード <span class="text-red-500">*</span></label>
+                                            <input type="password" name="newPassword" required
+                                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                            <div class="mt-1 text-xs text-gray-500">
+                                                8文字以上、大文字・小文字・数字・記号のうち3種類以上を含む必要があります
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">新しいパスワード（確認） <span class="text-red-500">*</span></label>
+                                            <input type="password" name="confirmPassword" required
+                                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-6 flex justify-end">
+                                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg">
+                                            <i class="fas fa-key mr-2"></i>
+                                            パスワードを変更
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- 2要素認証設定 -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                            <div class="p-6 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <i class="fas fa-mobile-alt mr-2 text-blue-600"></i>
+                                    2要素認証
+                                </h3>
+                            </div>
+                            <div class="p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">2要素認証の状態</h4>
+                                        <p class="text-sm text-gray-600">セキュリティを強化するために2要素認証を有効にしてください</p>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span id="2fa-status" class="mr-3 text-sm font-medium">読み込み中...</span>
+                                        <button id="2fa-toggle" onclick="toggle2FA()" class="bg-gray-300 text-gray-600 px-4 py-2 rounded-lg disabled:opacity-50">
+                                            処理中...
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

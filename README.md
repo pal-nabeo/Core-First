@@ -66,6 +66,17 @@
 - ✅ 現在プランと使用量の表示
 - ✅ プラン比較とアップグレードUI
 
+#### アカウント管理機能
+- ✅ ユーザープロフィール編集（表示名、電話番号、言語、タイムゾーン）
+- ✅ パスワード変更機能（強度チェック付き）
+- ✅ 2要素認証の有効化・無効化
+- ✅ ロール・権限情報の表示
+- ✅ アカウントセキュリティ設定
+- ✅ 管理者向けユーザー権限編集機能
+- ✅ ユーザーステータス変更（有効・無効・凍結）
+- ✅ ロール割り当て・削除機能
+- ✅ 監査ログによる変更追跡
+
 #### 管理機能
 - ✅ 管理者ダッシュボード
 - ✅ 権限別アクセス制御
@@ -252,6 +263,25 @@ POST   /api/upgrade/change-plan  # プラン変更（アップグレード・ダ
 GET    /api/upgrade/history      # プラン変更履歴
 ```
 
+### アカウント管理 API（NEW）
+```
+GET    /api/account/profile      # 現在のユーザープロフィール取得
+PUT    /api/account/profile      # プロフィール更新（表示名、電話番号等）
+PUT    /api/account/password     # パスワード変更
+POST   /api/account/2fa/enable   # 2要素認証有効化
+POST   /api/account/2fa/disable  # 2要素認証無効化
+```
+
+### 管理者向けユーザー管理 API（NEW）
+```
+GET    /api/admin/users          # テナント内ユーザー一覧（検索・ページング付き）
+GET    /api/admin/users/:id      # 特定ユーザーの詳細情報取得
+POST   /api/admin/users/:id/roles     # ユーザーへのロール追加・割り当て
+DELETE /api/admin/users/:id/roles/:assignmentId # ロール割り当て削除
+PUT    /api/admin/users/:id/status    # ユーザーステータス変更
+GET    /api/admin/roles          # 利用可能ロール一覧
+```
+
 ### テスト API（開発用）
 ```
 GET    /api/test/hello           # 基本テスト
@@ -261,14 +291,13 @@ GET    /api/test/users/:id       # ユーザー一覧
 POST   /api/test/login-test      # ログインテスト
 ```
 
-### 管理 API（実装予定）
+### その他の管理 API（実装予定）
 ```
-GET    /api/admin/users          # ユーザー一覧
 POST   /api/admin/users          # ユーザー作成
-PUT    /api/admin/users/:id      # ユーザー更新
-DELETE /api/admin/users/:id      # ユーザー削除
 POST   /api/admin/invite         # ユーザー招待
 GET    /api/admin/audit          # 監査ログ
+GET    /api/admin/organizations  # 組織管理
+GET    /api/admin/settings       # システム設定
 ```
 
 ## セキュリティ要件

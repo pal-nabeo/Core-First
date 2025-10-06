@@ -1514,3 +1514,234 @@ async function logout() {
         window.location.href = '/login';
     }
 }
+
+// ==============================================
+// アカウント管理機能
+// ==============================================
+
+// プロフィール情報読み込み
+async function loadProfile() {
+    try {
+        const response = await fetch('/api/account/profile', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.success) {
+            const profile = data.profile;
+            
+            // フォーム要素に値を設定
+            document.getElementById('display-name').value = profile.displayName || '';
+            document.getElementById('email').value = profile.email || '';
+            document.getElementById('phone-number').value = profile.phoneNumber || '';
+            document.getElementById('locale').value = profile.locale || 'ja-JP';
+            document.getElementById('timezone').value = profile.timezone || 'Asia/Tokyo';
+            
+            // 作成日を表示
+            if (profile.createdAt) {
+                const createdDate = new Date(profile.createdAt);
+                document.getElementById('created-at').value = createdDate.toLocaleString('ja-JP');
+            }
+            
+            // ロール情報を表示
+            updateUserRoles(profile.roles, profile.tenantName);
+            
+            // 2FA状態を更新
+            update2FAStatus(profile.twoFaEnabled);
+            
+            showNotification('プロフィール情報を読み込みました', 'success');
+        } else {
+            throw new Error(data.error || 'プロフィール読み込みに失敗しました');
+        }
+    } catch (error) {
+        console.error('Profile load error:', error);
+        showNotification('プロフィール読み込み中にエラーが発生しました: ' + error.message, 'error');
+    }
+}
+
+// ユーザーロール情報を表示
+function updateUserRoles(roles, tenantName) {
+    const rolesContainer = document.getElementById('user-roles');
+    
+    if (!roles || roles.length === 0) {
+        rolesContainer.innerHTML = '<p class="text-gray-500">ロールが割り当てられていません</p>';
+        return;
+    }
+    
+    const roleColors = {
+        'スーパー管理者': 'bg-red-100 text-red-800',
+        '管理者': 'bg-orange-100 text-orange-800',
+        'サイト管理者': 'bg-blue-100 text-blue-800',
+        '一般ユーザー': 'bg-gray-100 text-gray-800'
+    };
+    
+    const roleItems = roles.map(role => {
+        const colorClass = roleColors[role] || 'bg-gray-100 text-gray-800';
+        return `
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-shield-alt mr-3 text-green-600"></i>
+                    <div>
+                        <span class="inline-block px-2 py-1 text-xs font-medium rounded-full ${colorClass}">
+                            ${role}
+                        </span>
+                        <p class="text-sm text-gray-600 mt-1">組織: ${tenantName}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    rolesContainer.innerHTML = roleItems;
+}
+
+// プロフィール更新フォーム送信
+document.addEventListener('DOMContentLoaded', function() {
+    const profileForm = document.getElementById('profile-form');
+    if (profileForm) {
+        profileForm.addEventListener('submit', handleProfileUpdate);
+    }
+    
+    const passwordForm = document.getElementById('password-form');
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', handlePasswordChange);
+    }
+});
+
+// プロフィール更新処理
+async function handleProfileUpdate(event) {
+    event.preventDefault();
+    
+    try {
+        const formData = new FormData(event.target);
+        const profileData = {
+            displayName: formData.get('displayName'),
+            phoneNumber: formData.get('phoneNumber'),
+            locale: formData.get('locale'),
+            timezone: formData.get('timezone')
+        };
+        
+        const response = await fetch('/api/account/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(profileData),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('プロフィールを更新しました', 'success');
+        } else {
+            throw new Error(data.error || 'プロフィール更新に失敗しました');
+        }
+    } catch (error) {
+        console.error('Profile update error:', error);
+        showNotification('プロフィール更新中にエラーが発生しました: ' + error.message, 'error');
+    }
+}
+
+// パスワード変更処理
+async function handlePasswordChange(event) {
+    event.preventDefault();
+    
+    try {
+        const formData = new FormData(event.target);
+        const passwordData = {
+            currentPassword: formData.get('currentPassword'),
+            newPassword: formData.get('newPassword'),
+            confirmPassword: formData.get('confirmPassword')
+        };
+        
+        // パスワード確認
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            throw new Error('新しいパスワードが一致しません');
+        }
+        
+        const response = await fetch('/api/account/password', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(passwordData),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('パスワードを変更しました', 'success');
+            event.target.reset(); // フォームをクリア
+        } else {
+            throw new Error(data.error || 'パスワード変更に失敗しました');
+        }
+    } catch (error) {
+        console.error('Password change error:', error);
+        showNotification('パスワード変更中にエラーが発生しました: ' + error.message, 'error');
+    }
+}
+
+// 2FA状態更新
+function update2FAStatus(enabled) {
+    const statusElement = document.getElementById('2fa-status');
+    const toggleButton = document.getElementById('2fa-toggle');
+    
+    if (enabled) {
+        statusElement.textContent = '有効';
+        statusElement.className = 'mr-3 text-sm font-medium text-green-600';
+        toggleButton.textContent = '無効化';
+        toggleButton.className = 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg';
+        toggleButton.onclick = () => toggle2FA(false);
+    } else {
+        statusElement.textContent = '無効';
+        statusElement.className = 'mr-3 text-sm font-medium text-gray-600';
+        toggleButton.textContent = '有効化';
+        toggleButton.className = 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg';
+        toggleButton.onclick = () => toggle2FA(true);
+    }
+}
+
+// 2FA切り替え
+async function toggle2FA(enable) {
+    try {
+        const endpoint = enable ? '/api/account/2fa/enable' : '/api/account/2fa/disable';
+        
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(data.message, 'success');
+            update2FAStatus(enable);
+        } else {
+            throw new Error(data.error || '2FA設定に失敗しました');
+        }
+    } catch (error) {
+        console.error('2FA toggle error:', error);
+        showNotification('2FA設定中にエラーが発生しました: ' + error.message, 'error');
+    }
+}
+
+// セクション表示時にプロフィールデータを自動読み込み
+const originalShowSection = showSection;
+showSection = function(sectionId) {
+    originalShowSection(sectionId);
+    
+    // プロフィールセクションが表示された時にデータを読み込み
+    if (sectionId === 'profile' || sectionId === 'security') {
+        setTimeout(() => {
+            loadProfile();
+        }, 100);
+    }
+};

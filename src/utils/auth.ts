@@ -339,6 +339,36 @@ export async function updateLoginSuccess(
 }
 
 /**
+ * リクエストからユーザー認証情報を取得
+ */
+export async function authenticateUser(c: any): Promise<{ success: true; user: any; tenant: any } | { success: false; error: string }> {
+  try {
+    // セッションCookieから認証情報を取得
+    const sessionToken = c.req.header('Cookie')?.match(/session_token=([^;]+)/)?.[1];
+    
+    if (!sessionToken) {
+      return { success: false, error: '認証が必要です' };
+    }
+
+    // セッション検証
+    const authContext = await validateSession(c.env.DB, sessionToken);
+    
+    if (!authContext) {
+      return { success: false, error: '無効なセッションです' };
+    }
+
+    return { 
+      success: true, 
+      user: authContext.user, 
+      tenant: authContext.tenant 
+    };
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return { success: false, error: '認証エラーが発生しました' };
+  }
+}
+
+/**
  * 監査ログ記録
  */
 export async function logAuditEvent(
