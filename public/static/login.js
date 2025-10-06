@@ -12,15 +12,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const tenantField = document.getElementById('tenant-field');
     const tenantSelect = document.getElementById('tenant_subdomain');
 
-    // 開発環境でのテナント選択フィールド表示
-    if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
-        tenantField.classList.remove('hidden');
-        // URLパラメータからテナントを取得
-        const urlParams = new URLSearchParams(window.location.search);
-        const tenantParam = urlParams.get('tenant');
-        if (tenantParam) {
-            tenantSelect.value = tenantParam;
-        }
+    // テナント選択フィールドを常に表示（開発環境用）
+    tenantField.classList.remove('hidden');
+    
+    // URLパラメータからテナントを取得、なければデフォルト値を設定
+    const urlParams = new URLSearchParams(window.location.search);
+    const tenantParam = urlParams.get('tenant');
+    if (tenantParam) {
+        tenantSelect.value = tenantParam;
+    } else if (!tenantSelect.value) {
+        tenantSelect.value = 'demo-company'; // デフォルト値
     }
 
     // パスワード表示切替

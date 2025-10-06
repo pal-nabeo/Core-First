@@ -160,7 +160,7 @@ app.get('/login', (c) => {
                 </div>
 
                 <!-- 企業識別（開発用） -->
-                <div class="hidden" id="tenant-field">
+                <div id="tenant-field">
                     <label for="tenant_subdomain" class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-building mr-1"></i>
                         企業識別子
@@ -173,7 +173,7 @@ app.get('/login', (c) => {
                         <option value="">企業を選択...</option>
                         <option value="abc-logistics">ABC物流株式会社</option>
                         <option value="xyz-delivery">XYZ配送サービス</option>
-                        <option value="demo-company">デモ物流企業</option>
+                        <option value="demo-company" selected>デモ物流企業</option>
                     </select>
                 </div>
 

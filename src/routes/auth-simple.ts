@@ -69,7 +69,7 @@ auth.post('/login', async (c) => {
     if (!tenant) {
       return c.json({ 
         success: false, 
-        error: 'ログインに失敗しました。企業情報が見つかりません。' 
+        error: `ログインに失敗しました。企業情報が見つかりません。(サブドメイン: ${subdomain})` 
       }, 400);
     }
 
