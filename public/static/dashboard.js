@@ -53,6 +53,12 @@ function setupEventListeners() {
         editUserForm.addEventListener('submit', handleEditUser);
     }
 
+    // パスワードリセットフォーム送信イベント
+    const passwordResetForm = document.getElementById('password-reset-form');
+    if (passwordResetForm) {
+        passwordResetForm.addEventListener('submit', handlePasswordReset);
+    }
+
     // モーダル外クリックで閉じる
     document.addEventListener('click', function(e) {
         const modals = document.querySelectorAll('[id$="-modal"]');
@@ -581,30 +587,41 @@ async function handleAddUser(e) {
     }
 }
 
-// ユーザー編集
+// ユーザー編集（スーパー管理者機能）
 async function editUser(userId) {
     try {
-        // ユーザー情報を取得
-        const response = await fetch(`/api/users/${userId}`, {
+        console.log('Editing user:', userId);
+        
+        // ユーザー詳細情報を取得
+        const response = await fetch(`/api/admin/users/${userId}`, {
             credentials: 'include'
         });
 
         const data = await response.json();
+        console.log('User detail response:', data);
 
         if (data.success && data.user) {
             const user = data.user;
             
             // フォームにデータを設定
             document.getElementById('edit-user-id').value = user.id;
-            document.getElementById('edit-name').value = user.display_name || user.name;
-            document.getElementById('edit-email').value = user.email;
-            document.getElementById('edit-role').value = user.role || 'user';
+            document.getElementById('edit-display-name').value = user.displayName || '';
+            document.getElementById('edit-email').value = user.email || '';
+            document.getElementById('edit-phone').value = user.phoneNumber || '';
             document.getElementById('edit-status').value = user.status || 'active';
+            document.getElementById('edit-locale').value = user.locale || 'ja-JP';
+            document.getElementById('edit-timezone').value = user.timezone || 'Asia/Tokyo';
+            
+            // チェックボックス設定
+            document.getElementById('edit-email-verified').checked = Boolean(user.emailVerified);
+            document.getElementById('edit-must-reset').checked = Boolean(user.mustResetPassword);
+            document.getElementById('edit-two-fa').checked = Boolean(user.twoFaEnabled);
+            document.getElementById('edit-reset-failed-logins').checked = false; // デフォルトはチェックなし
             
             // モーダルを表示
-            document.getElementById('edit-user-modal').classList.remove('hidden');
+            showModal('edit-user-modal');
         } else {
-            showNotification('ユーザー情報の取得に失敗しました', 'error');
+            showNotification(data.error || 'ユーザー情報の取得に失敗しました', 'error');
         }
     } catch (error) {
         console.error('ユーザー編集エラー:', error);
@@ -617,16 +634,25 @@ async function handleEditUser(e) {
     e.preventDefault();
     
     const formData = new FormData(e.target);
-    const userId = formData.get('user_id');
+    const userId = document.getElementById('edit-user-id').value;
+    
     const userData = {
-        display_name: formData.get('display_name'),
+        displayName: formData.get('displayName'),
         email: formData.get('email'),
-        role: formData.get('role'),
-        status: formData.get('status')
+        phoneNumber: formData.get('phoneNumber'),
+        status: formData.get('status'),
+        locale: formData.get('locale'),
+        timezone: formData.get('timezone'),
+        emailVerified: document.getElementById('edit-email-verified').checked,
+        mustResetPassword: document.getElementById('edit-must-reset').checked,
+        twoFaEnabled: document.getElementById('edit-two-fa').checked,
+        resetFailedLogins: document.getElementById('edit-reset-failed-logins').checked
     };
 
     try {
-        const response = await fetch(`/api/users/${userId}`, {
+        console.log('Updating user:', userId, userData);
+        
+        const response = await fetch(`/api/admin/users/${userId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -636,10 +662,11 @@ async function handleEditUser(e) {
         });
 
         const data = await response.json();
+        console.log('Update response:', data);
 
         if (data.success) {
             showNotification('ユーザー情報が正常に更新されました', 'success');
-            document.getElementById('edit-user-modal').classList.add('hidden');
+            hideModal('edit-user-modal');
             loadUsersData(currentPage);
             loadDashboardStats();
         } else {
@@ -1787,6 +1814,86 @@ async function toggle2FA(enable) {
     } catch (error) {
         console.error('2FA toggle error:', error);
         showNotification('2FA設定中にエラーが発生しました: ' + error.message, 'error');
+    }
+}
+
+// パスワードリセットモーダル表示
+function showPasswordResetModal() {
+    const userId = document.getElementById('edit-user-id').value;
+    document.getElementById('reset-user-id').value = userId;
+    document.getElementById('temp-password').value = '';
+    document.getElementById('require-reset').checked = true;
+    showModal('password-reset-modal');
+}
+
+// パスワードリセット処理
+async function handlePasswordReset(e) {
+    e.preventDefault();
+    
+    const userId = document.getElementById('reset-user-id').value;
+    const temporaryPassword = document.getElementById('temp-password').value;
+    const requireReset = document.getElementById('require-reset').checked;
+
+    try {
+        console.log('Resetting password for user:', userId);
+        
+        const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                temporaryPassword: temporaryPassword || undefined,
+                requireReset: requireReset
+            })
+        });
+
+        const data = await response.json();
+        console.log('Password reset response:', data);
+
+        if (data.success) {
+            showNotification('パスワードがリセットされました', 'success');
+            hideModal('password-reset-modal');
+            
+            // 一時パスワードを表示
+            if (data.temporaryPassword) {
+                showNotification(`一時パスワード: ${data.temporaryPassword}`, 'info');
+            }
+        } else {
+            showNotification(data.error || 'パスワードリセットに失敗しました', 'error');
+        }
+    } catch (error) {
+        console.error('Password reset error:', error);
+        showNotification('パスワードリセット中にエラーが発生しました', 'error');
+    }
+}
+
+// 管理者向けユーザー削除
+async function deleteUser(userId, userName) {
+    if (!confirm(`ユーザー「${userName}」を削除してもよろしいですか？\n\nこの操作は取り消すことができません。`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('ユーザーが正常に削除されました', 'success');
+            hideModal('edit-user-modal');
+            loadUsersData(currentPage);
+            loadDashboardStats();
+        } else {
+            showNotification(data.error || 'ユーザー削除に失敗しました', 'error');
+        }
+    } catch (error) {
+        console.error('User delete error:', error);
+        showNotification('ユーザー削除中にエラーが発生しました', 'error');
     }
 }
 

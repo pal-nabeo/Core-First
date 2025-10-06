@@ -536,6 +536,296 @@ adminApi.put('/users/:userId/status', async (c) => {
   }
 });
 
+// ユーザー情報更新（スーパー管理者専用）
+adminApi.put('/users/:userId', async (c) => {
+  try {
+    const adminCheck = await checkAdminPermission(c);
+    if (!adminCheck.success) {
+      return c.json({ 
+        success: false, 
+        error: adminCheck.error 
+      }, 403);
+    }
+
+    const { user: adminUser, tenant } = adminCheck;
+    const userId = c.req.param('userId');
+    const body = await c.req.json();
+    
+    const { 
+      displayName, 
+      email, 
+      phoneNumber, 
+      locale, 
+      timezone, 
+      status,
+      emailVerified,
+      mustResetPassword,
+      twoFaEnabled,
+      resetFailedLogins
+    } = body;
+
+    // スーパー管理者権限チェック
+    const isSuperAdmin = await c.env.DB.prepare(`
+      SELECT COUNT(*) as count FROM user_roles ur
+      JOIN roles r ON ur.role_id = r.id
+      WHERE ur.user_id = ? AND r.name = 'super_admin'
+      AND (ur.expires_at IS NULL OR ur.expires_at > datetime('now'))
+    `).bind(adminUser.id).first();
+
+    if (!isSuperAdmin || isSuperAdmin.count === 0) {
+      return c.json({
+        success: false,
+        error: 'この操作にはスーパー管理者権限が必要です'
+      }, 403);
+    }
+
+    // ユーザーの存在確認
+    const targetUser = await c.env.DB.prepare(`
+      SELECT id, display_name, email FROM users 
+      WHERE id = ? AND tenant_id = ?
+    `).bind(userId, tenant.id).first();
+
+    if (!targetUser) {
+      return c.json({
+        success: false,
+        error: 'ユーザーが見つかりません'
+      }, 404);
+    }
+
+    // メールアドレス重複チェック（変更時のみ）
+    if (email && email !== targetUser.email) {
+      const existingUser = await c.env.DB.prepare(`
+        SELECT id FROM users 
+        WHERE email = ? AND tenant_id = ? AND id != ?
+      `).bind(email, tenant.id, userId).first();
+
+      if (existingUser) {
+        return c.json({
+          success: false,
+          error: 'このメールアドレスは既に使用されています'
+        }, 400);
+      }
+    }
+
+    // 更新するフィールドを動的に構築
+    const updateFields = [];
+    const updateParams = [];
+
+    if (displayName !== undefined) {
+      updateFields.push('display_name = ?');
+      updateParams.push(displayName);
+    }
+
+    if (email !== undefined) {
+      updateFields.push('email = ?');
+      updateParams.push(email);
+    }
+
+    if (phoneNumber !== undefined) {
+      updateFields.push('phone_number = ?');
+      updateParams.push(phoneNumber || null);
+    }
+
+    if (locale !== undefined) {
+      updateFields.push('locale = ?');
+      updateParams.push(locale);
+    }
+
+    if (timezone !== undefined) {
+      updateFields.push('timezone = ?');
+      updateParams.push(timezone);
+    }
+
+    if (status !== undefined) {
+      updateFields.push('status = ?');
+      updateParams.push(status);
+    }
+
+    if (emailVerified !== undefined) {
+      updateFields.push('email_verified = ?');
+      updateParams.push(emailVerified ? 1 : 0);
+    }
+
+    if (mustResetPassword !== undefined) {
+      updateFields.push('must_reset_password = ?');
+      updateParams.push(mustResetPassword ? 1 : 0);
+    }
+
+    if (twoFaEnabled !== undefined) {
+      updateFields.push('two_fa_enabled = ?');
+      updateParams.push(twoFaEnabled ? 1 : 0);
+    }
+
+    if (resetFailedLogins) {
+      updateFields.push('failed_login_count = 0');
+      updateFields.push('locked_until = NULL');
+    }
+
+    // 更新するフィールドがない場合
+    if (updateFields.length === 0) {
+      return c.json({
+        success: false,
+        error: '更新する項目が指定されていません'
+      }, 400);
+    }
+
+    // 更新日時を追加
+    updateFields.push('updated_at = datetime(\'now\')');
+    updateParams.push(userId, tenant.id);
+
+    // ユーザー情報更新
+    const updateQuery = `
+      UPDATE users 
+      SET ${updateFields.join(', ')}
+      WHERE id = ? AND tenant_id = ?
+    `;
+
+    await c.env.DB.prepare(updateQuery).bind(...updateParams).run();
+
+    // 監査ログ記録
+    await c.env.DB.prepare(`
+      INSERT INTO audit_logs (
+        id, tenant_id, actor_user_id, action_type, target_type, target_id,
+        payload, ip_address, user_agent, result
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      crypto.randomUUID(),
+      tenant.id,
+      adminUser.id,
+      'user_updated',
+      'user',
+      userId,
+      JSON.stringify({
+        updated_fields: Object.keys(body),
+        target_user_name: targetUser.display_name,
+        target_user_email: targetUser.email
+      }),
+      c.req.header('CF-Connecting-IP') || 'unknown',
+      c.req.header('User-Agent') || 'unknown',
+      'success'
+    ).run();
+
+    return c.json({
+      success: true,
+      message: 'ユーザー情報が正常に更新されました'
+    });
+
+  } catch (error) {
+    console.error('User update error:', error);
+    return c.json({
+      success: false,
+      error: 'ユーザー情報更新中にエラーが発生しました',
+      debug: error instanceof Error ? error.message : 'Unknown error'
+    }, 500);
+  }
+});
+
+// パスワードリセット（スーパー管理者専用）
+adminApi.post('/users/:userId/reset-password', async (c) => {
+  try {
+    const adminCheck = await checkAdminPermission(c);
+    if (!adminCheck.success) {
+      return c.json({ 
+        success: false, 
+        error: adminCheck.error 
+      }, 403);
+    }
+
+    const { user: adminUser, tenant } = adminCheck;
+    const userId = c.req.param('userId');
+    const body = await c.req.json();
+    
+    const { temporaryPassword, requireReset = true } = body;
+
+    // スーパー管理者権限チェック
+    const isSuperAdmin = await c.env.DB.prepare(`
+      SELECT COUNT(*) as count FROM user_roles ur
+      JOIN roles r ON ur.role_id = r.id
+      WHERE ur.user_id = ? AND r.name = 'super_admin'
+      AND (ur.expires_at IS NULL OR ur.expires_at > datetime('now'))
+    `).bind(adminUser.id).first();
+
+    if (!isSuperAdmin || isSuperAdmin.count === 0) {
+      return c.json({
+        success: false,
+        error: 'この操作にはスーパー管理者権限が必要です'
+      }, 403);
+    }
+
+    // ユーザーの存在確認
+    const targetUser = await c.env.DB.prepare(`
+      SELECT id, display_name, email FROM users 
+      WHERE id = ? AND tenant_id = ?
+    `).bind(userId, tenant.id).first();
+
+    if (!targetUser) {
+      return c.json({
+        success: false,
+        error: 'ユーザーが見つかりません'
+      }, 404);
+    }
+
+    // 一時パスワードの生成（指定されていない場合）
+    const newPassword = temporaryPassword || `Temp${Math.floor(Math.random() * 10000)}!`;
+    
+    // パスワードハッシュ化（auth.tsと同じロジック）
+    const encoder = new TextEncoder();
+    const data = encoder.encode(newPassword + 'salt_string');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    // パスワード更新
+    await c.env.DB.prepare(`
+      UPDATE users 
+      SET 
+        hashed_password = ?,
+        must_reset_password = ?,
+        failed_login_count = 0,
+        locked_until = NULL,
+        updated_at = datetime('now')
+      WHERE id = ? AND tenant_id = ?
+    `).bind(hashedPassword, requireReset ? 1 : 0, userId, tenant.id).run();
+
+    // 監査ログ記録
+    await c.env.DB.prepare(`
+      INSERT INTO audit_logs (
+        id, tenant_id, actor_user_id, action_type, target_type, target_id,
+        payload, ip_address, user_agent, result
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      crypto.randomUUID(),
+      tenant.id,
+      adminUser.id,
+      'password_reset_by_admin',
+      'user',
+      userId,
+      JSON.stringify({
+        target_user_name: targetUser.display_name,
+        target_user_email: targetUser.email,
+        require_reset: requireReset
+      }),
+      c.req.header('CF-Connecting-IP') || 'unknown',
+      c.req.header('User-Agent') || 'unknown',
+      'success'
+    ).run();
+
+    return c.json({
+      success: true,
+      message: 'パスワードがリセットされました',
+      temporaryPassword: newPassword
+    });
+
+  } catch (error) {
+    console.error('Password reset error:', error);
+    return c.json({
+      success: false,
+      error: 'パスワードリセット中にエラーが発生しました',
+      debug: error instanceof Error ? error.message : 'Unknown error'
+    }, 500);
+  }
+});
+
 // 利用可能ロール一覧取得
 adminApi.get('/roles', async (c) => {
   try {

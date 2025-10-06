@@ -1483,40 +1483,159 @@ app.get('/dashboard', (c) => {
             </div>
         </div>
 
-        <!-- ユーザー編集モーダル -->
+        <!-- ユーザー編集モーダル（スーパー管理者専用） -->
         <div id="edit-user-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">ユーザー編集</h3>
-                    <button onclick="document.getElementById('edit-user-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">ユーザー情報編集</h3>
+                        <p class="text-sm text-gray-600">スーパー管理者専用機能</p>
+                    </div>
+                    <button onclick="hideModal('edit-user-modal')" class="text-gray-400 hover:text-gray-600">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 
-                <form id="edit-user-form" class="space-y-4">
+                <form id="edit-user-form">
                     <input type="hidden" id="edit-user-id" name="user_id">
                     
-                    <div>
-                        <label for="edit-name" class="block text-sm font-medium text-gray-700 mb-2">表示名</label>
-                        <input type="text" id="edit-name" name="display_name" required 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <!-- 基本情報 -->
+                    <div class="mb-6">
+                        <h4 class="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                            <i class="fas fa-user mr-2 text-blue-600"></i>
+                            基本情報
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="edit-display-name" class="block text-sm font-medium text-gray-700 mb-2">表示名 <span class="text-red-500">*</span></label>
+                                <input type="text" id="edit-display-name" name="displayName" required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label for="edit-email" class="block text-sm font-medium text-gray-700 mb-2">メールアドレス <span class="text-red-500">*</span></label>
+                                <input type="email" id="edit-email" name="email" required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label for="edit-phone" class="block text-sm font-medium text-gray-700 mb-2">電話番号</label>
+                                <input type="tel" id="edit-phone" name="phoneNumber" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="090-1234-5678">
+                            </div>
+                            
+                            <div>
+                                <label for="edit-status" class="block text-sm font-medium text-gray-700 mb-2">ステータス <span class="text-red-500">*</span></label>
+                                <select id="edit-status" name="status" required 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="active">有効</option>
+                                    <option value="disabled">無効</option>
+                                    <option value="frozen">凍結</option>
+                                    <option value="trial_expired">試用期間終了</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="edit-locale" class="block text-sm font-medium text-gray-700 mb-2">言語</label>
+                                <select id="edit-locale" name="locale" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="ja-JP">日本語</option>
+                                    <option value="en-US">English (US)</option>
+                                    <option value="zh-CN">简体中文</option>
+                                    <option value="ko-KR">한국어</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="edit-timezone" class="block text-sm font-medium text-gray-700 mb-2">タイムゾーン</label>
+                                <select id="edit-timezone" name="timezone" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                                    <option value="America/New_York">America/New_York (EST)</option>
+                                    <option value="Europe/London">Europe/London (GMT)</option>
+                                    <option value="Asia/Shanghai">Asia/Shanghai (CST)</option>
+                                    <option value="Asia/Seoul">Asia/Seoul (KST)</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div>
-                        <label for="edit-email" class="block text-sm font-medium text-gray-700 mb-2">メールアドレス</label>
-                        <input type="email" id="edit-email" name="email" required 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <!-- セキュリティ設定 -->
+                    <div class="mb-6">
+                        <h4 class="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                            <i class="fas fa-shield-alt mr-2 text-green-600"></i>
+                            セキュリティ設定
+                        </h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="edit-email-verified" name="emailVerified" 
+                                           class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">メールアドレス認証済み</span>
+                                </label>
+                                
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="edit-must-reset" name="mustResetPassword" 
+                                           class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">次回ログイン時にパスワード変更を要求</span>
+                                </label>
+                                
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="edit-two-fa" name="twoFaEnabled" 
+                                           class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700">2要素認証有効</span>
+                                </label>
+                            </div>
+                            
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="edit-reset-failed-logins" name="resetFailedLogins" 
+                                           class="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                                    <span class="ml-2 text-sm text-gray-700">ログイン失敗回数をリセットしてアカウントロックを解除</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div>
-                        <label for="edit-role" class="block text-sm font-medium text-gray-700 mb-2">権限</label>
-                        <select id="edit-role" name="role" required 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="super_admin">スーパー管理者</option>
-                            <option value="admin">管理者</option>
-                            <option value="site_manager">サイト管理者</option>
-                            <option value="user">一般ユーザー</option>
-                        </select>
+                    <!-- 危険な操作 -->
+                    <div class="mb-6">
+                        <h4 class="text-md font-semibold text-gray-900 mb-3 flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-2 text-red-600"></i>
+                            危険な操作
+                        </h4>
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <div class="space-y-3">
+                                <button type="button" onclick="showPasswordResetModal()" 
+                                        class="w-full md:w-auto px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 mr-2">
+                                    <i class="fas fa-key mr-2"></i>
+                                    パスワードをリセット
+                                </button>
+                                
+                                <button type="button" onclick="deleteUser()" 
+                                        class="w-full md:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                    <i class="fas fa-trash mr-2"></i>
+                                    ユーザーを削除
+                                </button>
+                            </div>
+                            <p class="text-sm text-red-700 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                これらの操作は取り消すことができません。注意して実行してください。
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作ボタン -->
+                    <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                        <button type="button" onclick="hideModal('edit-user-modal')" 
+                                class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            キャンセル
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-save mr-2"></i>
+                            変更を保存
+                        </button>
                     </div>
                     
                     <div>
@@ -1538,6 +1657,70 @@ app.get('/dashboard', (c) => {
                                 class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                             <i class="fas fa-save mr-2"></i>
                             更新
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- パスワードリセットモーダル -->
+        <div id="password-reset-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">パスワードリセット</h3>
+                        <p class="text-sm text-gray-600">管理者によるパスワードリセット</p>
+                    </div>
+                    <button onclick="hideModal('password-reset-modal')" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="password-reset-form">
+                    <input type="hidden" id="reset-user-id">
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="temp-password" class="block text-sm font-medium text-gray-700 mb-2">新しい一時パスワード</label>
+                            <input type="text" id="temp-password" name="temporaryPassword" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                                   placeholder="空欄の場合は自動生成されます">
+                            <div class="mt-1 text-xs text-gray-500">
+                                空欄にすると「Temp####!」形式で自動生成されます
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="require-reset" name="requireReset" checked 
+                                       class="h-4 w-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500">
+                                <span class="ml-2 text-sm text-gray-700">次回ログイン時にパスワード変更を要求</span>
+                            </label>
+                        </div>
+                        
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5 mr-2"></i>
+                                <div class="text-sm text-yellow-800">
+                                    <strong>注意事項:</strong><br>
+                                    • パスワードがリセットされます<br>
+                                    • ログイン失敗回数もリセットされます<br>
+                                    • アカウントロックが解除されます<br>
+                                    • ユーザーに新しいパスワードを安全に通知してください
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="hideModal('password-reset-modal')" 
+                                class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            キャンセル
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
+                            <i class="fas fa-key mr-2"></i>
+                            パスワードをリセット
                         </button>
                     </div>
                 </form>
