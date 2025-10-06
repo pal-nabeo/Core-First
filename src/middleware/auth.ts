@@ -1,0 +1,207 @@
+// PAL物流SaaS 認証ミドルウェア
+import { Context, Next } from 'hono';
+import { getCookie } from 'hono/cookie';
+import { validateSession } from '../utils/auth';
+import type { CloudflareBindings, AuthContext } from '../types/auth';
+
+/**
+ * 認証が必要なルート用ミドルウェア
+ */
+export async function requireAuth(c: Context<{ Bindings: CloudflareBindings }>, next: Next) {
+  const sessionToken = getCookie(c, 'session_token') || c.req.header('Authorization')?.replace('Bearer ', '');
+
+  if (!sessionToken) {
+    return c.json({ error: 'Authentication required' }, 401);
+  }
+
+  try {
+    const authContext = await validateSession(c.env.DB, sessionToken);
+    
+    if (!authContext) {
+      return c.json({ error: 'Invalid or expired session' }, 401);
+    }
+
+    // コンテキストに認証情報を設定
+    c.set('auth', authContext);
+    
+    await next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return c.json({ error: 'Authentication failed' }, 401);
+  }
+}
+
+/**
+ * 管理者権限が必要なルート用ミドルウェア
+ */
+export async function requireAdmin(c: Context<{ Bindings: CloudflareBindings }>, next: Next) {
+  const auth: AuthContext = c.get('auth');
+  
+  if (!auth) {
+    return c.json({ error: 'Authentication required' }, 401);
+  }
+
+  // 管理者権限チェック
+  const isAdmin = auth.roles.some(role => 
+    role.name === 'super_admin' || role.name === 'admin'
+  );
+
+  if (!isAdmin) {
+    return c.json({ error: 'Administrator privileges required' }, 403);
+  }
+
+  await next();
+}
+
+/**
+ * スーパー管理者権限が必要なルート用ミドルウェア
+ */
+export async function requireSuperAdmin(c: Context<{ Bindings: CloudflareBindings }>, next: Next) {
+  const auth: AuthContext = c.get('auth');
+  
+  if (!auth) {
+    return c.json({ error: 'Authentication required' }, 401);
+  }
+
+  // スーパー管理者権限チェック
+  const isSuperAdmin = auth.roles.some(role => role.name === 'super_admin');
+
+  if (!isSuperAdmin) {
+    return c.json({ error: 'Super administrator privileges required' }, 403);
+  }
+
+  await next();
+}
+
+/**
+ * テナント分離ミドルウェア
+ * URLからテナントを抽出し、リクエストコンテキストに設定
+ */
+export async function tenantMiddleware(c: Context<{ Bindings: CloudflareBindings }>, next: Next) {
+  const url = new URL(c.req.url);
+  const subdomain = url.hostname.split('.')[0];
+  
+  // 開発環境やlocalhostでのテスト用
+  let tenantSubdomain = subdomain;
+  if (url.hostname === 'localhost' || url.hostname.includes('127.0.0.1')) {
+    // クエリパラメータまたはヘッダーからテナントを取得
+    tenantSubdomain = c.req.query('tenant') || c.req.header('X-Tenant-Subdomain') || 'demo-company';
+  }
+
+  c.set('tenantSubdomain', tenantSubdomain);
+  await next();
+}
+
+/**
+ * CORS設定ミドルウェア
+ */
+export async function corsMiddleware(c: Context, next: Next) {
+  const origin = c.req.header('Origin');
+  
+  // 開発環境では全てのオリジンを許可
+  if (c.env?.NODE_ENV === 'development') {
+    c.header('Access-Control-Allow-Origin', origin || '*');
+  } else {
+    // 本番環境では特定のオリジンのみ許可
+    const allowedOrigins = [
+      'https://*.pages.dev',
+      'https://*.your-domain.com'
+    ];
+    
+    if (origin && allowedOrigins.some(allowed => origin.match(allowed))) {
+      c.header('Access-Control-Allow-Origin', origin);
+    }
+  }
+
+  c.header('Access-Control-Allow-Credentials', 'true');
+  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Tenant-Subdomain');
+
+  if (c.req.method === 'OPTIONS') {
+    return c.text('', 204);
+  }
+
+  await next();
+}
+
+/**
+ * セキュリティヘッダー設定ミドルウェア
+ */
+export async function securityHeaders(c: Context, next: Next) {
+  await next();
+
+  // セキュリティヘッダーの設定
+  c.header('X-Content-Type-Options', 'nosniff');
+  c.header('X-Frame-Options', 'DENY');
+  c.header('X-XSS-Protection', '1; mode=block');
+  c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+  c.header('Permissions-Policy', 'camera=(), microphone=(), location=()');
+  
+  // HTTPS環境でのみSecureヘッダーを設定
+  if (c.req.url.startsWith('https://')) {
+    c.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  }
+}
+
+/**
+ * レート制限ミドルウェア（簡易版）
+ */
+export async function rateLimit(options: { requests: number; windowMs: number }) {
+  return async (c: Context<{ Bindings: CloudflareBindings }>, next: Next) => {
+    const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
+    const key = `rate_limit:${ip}`;
+    
+    try {
+      // KVを使ったレート制限（KV Namespace が利用可能な場合）
+      if (c.env.KV) {
+        const current = await c.env.KV.get(key);
+        const count = current ? parseInt(current) : 0;
+        
+        if (count >= options.requests) {
+          return c.json({ error: 'Rate limit exceeded' }, 429);
+        }
+        
+        await c.env.KV.put(key, (count + 1).toString(), { expirationTtl: Math.floor(options.windowMs / 1000) });
+      }
+    } catch (error) {
+      console.warn('Rate limiting unavailable:', error);
+    }
+    
+    await next();
+  };
+}
+
+/**
+ * IP制限ミドルウェア
+ */
+export async function ipRestriction(c: Context<{ Bindings: CloudflareBindings }>, next: Next) {
+  const auth: AuthContext | undefined = c.get('auth');
+  const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
+  
+  // 認証済みユーザーのテナントでIP制限が有効かチェック
+  if (auth?.tenant) {
+    try {
+      const allowedIPs = await c.env.DB.prepare(`
+        SELECT cidr_range FROM ip_allowlists 
+        WHERE tenant_id = ? AND is_active = 1
+      `).bind(auth.tenant.id).all();
+
+      if (allowedIPs.results && allowedIPs.results.length > 0) {
+        // 簡易的なCIDRチェック（本格的な実装では適切なライブラリを使用）
+        const isAllowed = allowedIPs.results.some((row: any) => {
+          const cidr = row.cidr_range as string;
+          // 簡単な実装：完全一致または前方一致のみ
+          return ip === cidr || cidr.includes('/24') && ip.startsWith(cidr.split('/')[0].split('.').slice(0, 3).join('.'));
+        });
+
+        if (!isAllowed) {
+          return c.json({ error: 'Access denied: IP not allowed' }, 403);
+        }
+      }
+    } catch (error) {
+      console.error('IP restriction check failed:', error);
+    }
+  }
+
+  await next();
+}

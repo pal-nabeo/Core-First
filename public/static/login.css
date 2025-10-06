@@ -1,0 +1,158 @@
+/* PAL物流SaaS ログイン画面 カスタムCSS */
+
+/* アニメーション定義 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ページ全体のアニメーション */
+body {
+  animation: fadeIn 0.8s ease-out;
+}
+
+/* ログインカードのアニメーション */
+.bg-white.rounded-lg {
+  animation: slideInFromLeft 0.6s ease-out;
+}
+
+/* ロゴのアニメーション */
+.bg-blue-600.rounded-full {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* フォーカス時のアニメーション */
+input:focus {
+  transition: all 0.3s ease;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ボタンホバーアニメーション */
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* エラーメッセージのアニメーション */
+#error-message {
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* ローディングスピナーのアニメーション */
+.fa-spin {
+  animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
+}
+
+/* パスワード表示切替ボタン */
+#toggle-password {
+  transition: color 0.2s ease;
+}
+
+#toggle-password:hover {
+  color: #374151;
+}
+
+/* リンクのホバー効果 */
+a {
+  transition: color 0.2s ease;
+}
+
+/* フォーム要素のカスタマイズ */
+.form-input {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* モバイル対応 */
+@media (max-width: 640px) {
+  .bg-white.rounded-lg {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+}
+
+/* ダークモード対応（将来的な拡張用） */
+@media (prefers-color-scheme: dark) {
+  /* ダークモード時のスタイルはここに追加 */
+}
+
+/* アクセシビリティ: 動きを減らす設定 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 成功メッセージのアニメーション */
+.bg-green-50 {
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* フォームの検証状態 */
+.invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.valid {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* カスタムスクロールバー */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
