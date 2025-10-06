@@ -41,8 +41,8 @@ app.use('/api/*', cors({
 }));
 
 // 静的ファイル配信（CSSやJS）
-app.use('/static/*', serveStatic({ root: './public' }));
-app.use('/favicon.ico', serveStatic({ path: './public/favicon.ico' }));
+app.use('/static/*', serveStatic());
+app.use('/favicon.ico', serveStatic());
 
 // API ルート
 app.route('/api/auth', auth);
@@ -300,17 +300,132 @@ app.get('/dashboard', (c) => {
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     </head>
     <body class="bg-gray-100">
-        <div id="dashboard-app" class="min-h-screen">
-            <!-- 認証チェック中のローディング -->
-            <div id="loading" class="flex items-center justify-center min-h-screen">
-                <div class="text-center">
-                    <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
-                    <p class="text-gray-600">読み込み中...</p>
+        <!-- ヘッダー -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <i class="fas fa-truck-moving text-blue-600 text-2xl mr-3"></i>
+                        <h1 class="text-xl font-semibold text-gray-900">PAL物流SaaS</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-600">ようこそ！</span>
+                        <button onclick="logout()" class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm">
+                            <i class="fas fa-sign-out-alt mr-1"></i>
+                            ログアウト
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <script src="/static/dashboard.js"></script>
+        <!-- メインコンテンツ -->
+        <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">ダッシュボード</h2>
+                <p class="text-gray-600">物流管理システムの概要</p>
+            </div>
+
+            <!-- ステータスカード -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-blue-500 rounded-md">
+                            <i class="fas fa-users text-white"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">ユーザー数</h3>
+                            <p class="text-2xl font-semibold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-green-500 rounded-md">
+                            <i class="fas fa-check-circle text-white"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">アクティブセッション</h3>
+                            <p class="text-2xl font-semibold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-yellow-500 rounded-md">
+                            <i class="fas fa-exclamation-triangle text-white"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">アラート</h3>
+                            <p class="text-2xl font-semibold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-red-500 rounded-md">
+                            <i class="fas fa-shield-alt text-white"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">セキュリティ</h3>
+                            <p class="text-2xl font-semibold text-green-600">正常</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- クイックアクション -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b">
+                    <h3 class="text-lg font-medium text-gray-900">クイックアクション</h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <a href="/admin" class="flex items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition-colors">
+                            <i class="fas fa-users-cog text-blue-600 text-2xl mr-3"></i>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-900">ユーザー管理</h4>
+                                <p class="text-xs text-gray-500">ユーザーの追加・編集・削除</p>
+                            </div>
+                        </a>
+                        
+                        <a href="/admin" class="flex items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition-colors">
+                            <i class="fas fa-chart-bar text-green-600 text-2xl mr-3"></i>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-900">レポート</h4>
+                                <p class="text-xs text-gray-500">利用状況分析とレポート</p>
+                            </div>
+                        </a>
+                        
+                        <a href="/admin" class="flex items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition-colors">
+                            <i class="fas fa-cog text-gray-600 text-2xl mr-3"></i>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-900">設定</h4>
+                                <p class="text-xs text-gray-500">システム設定とセキュリティ</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <script>
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                window.location.href = '/login';
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = '/login';
+            }
+        }
+        </script>
     </body>
     </html>
   `);
