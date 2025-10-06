@@ -25,12 +25,12 @@
 ## データ アーキテクチャ
 
 ### 主要データモデル
-- **Tenants（テナント）**: 物流企業の管理
+- **Tenants（テナント）**: 物流企業の管理、プラン情報、日付管理
 - **Users（ユーザー）**: 企業内ユーザーの管理
 - **Roles（ロール）**: 権限の定義
 - **Organization Units（事業所）**: 本社・支店・営業所の階層管理
 - **Invitations（招待）**: ユーザー招待の管理
-- **Audit Logs（監査ログ）**: 全操作の記録
+- **Audit Logs（監査ログ）**: 全操作の記録、プラン変更履歴
 
 ### ストレージサービス
 - **Cloudflare D1 Database**: SQLiteベースの分散データベース
@@ -57,6 +57,14 @@
 - ✅ セッション管理（Cookie + データベース）
 - ✅ ログイン状態保持機能
 - ✅ パスワードリセット機能（基盤）
+
+#### プラン・アップグレード機能
+- ✅ 4種類のプラン（Free, Standard, Plus, Pro）
+- ✅ プラン変更API（アップグレード・ダウングレード）
+- ✅ 利用状況の追跡と制限チェック
+- ✅ プラン変更履歴の記録と表示
+- ✅ 現在プランと使用量の表示
+- ✅ プラン比較とアップグレードUI
 
 #### 管理機能
 - ✅ 管理者ダッシュボード
@@ -236,6 +244,14 @@ GET    /api/tenant/info          # 現在のテナント情報取得
 GET    /api/tenant/list          # 利用可能テナント一覧
 ```
 
+### アップグレード・プラン管理 API（NEW）
+```
+GET    /api/upgrade/plans        # 利用可能プラン一覧
+GET    /api/upgrade/status       # 現在のプラン状況と利用量
+POST   /api/upgrade/change-plan  # プラン変更（アップグレード・ダウングレード）
+GET    /api/upgrade/history      # プラン変更履歴
+```
+
 ### テスト API（開発用）
 ```
 GET    /api/test/hello           # 基本テスト
@@ -298,6 +314,7 @@ GET    /api/admin/audit          # 監査ログ
 
 | 項目 | Free | Standard | Plus | Pro |
 |------|------|----------|------|-----|
+| **料金** | **無料** | **2,000円/月** | **8,000円/月** | **25,000円/月** |
 | 利用期間 | 30日間 | 無制限 | 無制限 | 無制限 |
 | ユーザー数 | 10名 | 50名 | 200名 | 無制限 |
 | データ容量 | 1GB | 50GB | 500GB | 無制限 |
@@ -411,7 +428,9 @@ webapp/
 │       ├── login.css       # ログイン画面CSS
 │       └── admin.js        # 管理画面JavaScript
 ├── migrations/
-│   └── 0001_initial_schema.sql # 初期スキーマ
+│   ├── 0001_initial_schema.sql # 初期スキーマ
+│   ├── 0002_add_plan_dates.sql # プラン日付カラム追加
+│   └── 0003_add_audit_details.sql # 監査ログ詳細カラム追加
 ├── dist/                   # ビルド出力
 ├── .wrangler/              # Wrangler ローカル状態
 ├── ecosystem.config.cjs    # PM2設定
