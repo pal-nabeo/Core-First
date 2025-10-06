@@ -9,38 +9,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorText = document.getElementById('error-text');
     const togglePassword = document.getElementById('toggle-password');
     const passwordInput = document.getElementById('password');
-    const tenantDisplay = document.getElementById('tenant-display');
+    const emailInput = document.getElementById('email');
 
-    // サブドメインから企業情報を取得
-    let currentTenant = null;
-    async function loadTenantInfo() {
+    // メールアドレスから企業ドメインを判定する関数
+    function extractDomainFromEmail(email) {
+        if (!email || !email.includes('@')) return null;
+        return email.split('@')[1].toLowerCase();
+    }
+
+    // 企業ドメインからテナント情報を取得する関数
+    async function getTenantByEmailDomain(email) {
         try {
-            const response = await fetch('/api/tenant/info', {
-                method: 'GET',
-                credentials: 'include'
+            const response = await fetch('/api/tenant/find-by-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ email })
             });
             
             if (response.ok) {
                 const result = await response.json();
-                if (result.success && result.tenant) {
-                    currentTenant = result.tenant;
-                    tenantDisplay.textContent = `${result.tenant.name} (${result.tenant.subdomain})`;
-                } else {
-                    tenantDisplay.textContent = 'テナント情報が見つかりません';
-                    tenantDisplay.parentElement.className = 'mb-4 p-3 bg-red-50 border border-red-200 rounded-md';
-                    tenantDisplay.parentElement.querySelector('span').className = 'text-red-700';
-                }
-            } else {
-                tenantDisplay.textContent = 'テナント情報の取得に失敗しました';
+                return result.success ? result.tenant : null;
             }
         } catch (error) {
-            console.error('Tenant info error:', error);
-            tenantDisplay.textContent = 'デフォルトテナント (demo-company)';
+            console.error('Tenant lookup error:', error);
         }
+        return null;
     }
-
-    // 初期化時にテナント情報を取得
-    loadTenantInfo();
 
     // パスワード表示切替
     togglePassword.addEventListener('click', function() {
@@ -93,20 +88,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // フォームデータの取得
         const formData = new FormData(this);
-        const loginData = {
-            email: formData.get('email'),
-            password: formData.get('password'),
-            remember_me: formData.get('remember_me') === 'on'
-            // tenant_subdomain は削除 - サブドメインから自動判定
-        };
+        const email = formData.get('email');
+        const password = formData.get('password');
+        const remember_me = formData.get('remember_me') === 'on';
+
+        if (!email) {
+            showError('メールアドレスを入力してください。');
+            setLoading(false);
+            return;
+        }
 
         try {
+            // まずメールアドレスからテナントを判定
+            const tenant = await getTenantByEmailDomain(email);
+            
+            const loginData = {
+                email,
+                password,
+                remember_me,
+                // テナント情報が見つかった場合は指定
+                tenant_subdomain: tenant ? tenant.subdomain : undefined
+            };
+
             // ログインAPI呼び出し
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                    // X-Tenant-Subdomainヘッダーを削除 - サブドメインから自動判定
                 },
                 credentials: 'include',
                 body: JSON.stringify(loginData)

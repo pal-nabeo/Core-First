@@ -38,7 +38,7 @@ function generateSessionToken(): string {
 auth.post('/login', async (c) => {
   try {
     const body = await c.req.json();
-    const { email, password, remember_me } = body;
+    const { email, password, remember_me, tenant_subdomain } = body;
     
     // 基本バリデーション
     if (!email || !password) {
@@ -59,8 +59,36 @@ auth.post('/login', async (c) => {
     const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
     const userAgent = c.req.header('User-Agent') || 'unknown';
 
-    // テナント取得（サブドメインから自動判定）
-    let subdomain = c.get('tenantSubdomain') || 'demo-company';
+    // テナント取得（メールアドレスまたはサブドメインから判定）
+    let subdomain = tenant_subdomain || c.get('tenantSubdomain');
+    
+    // メールアドレスから企業ドメインを抽出してテナント判定
+    if (!subdomain && email) {
+      const emailDomain = email.split('@')[1]?.toLowerCase();
+      if (emailDomain) {
+        // ドメインからテナントを検索
+        const tenantByDomain = await c.env.DB.prepare(`
+          SELECT subdomain FROM tenants 
+          WHERE status = 'active' 
+          AND (domain_allowlist LIKE '%"' || ? || '"%' OR domain_allowlist IS NULL)
+          ORDER BY 
+            CASE 
+              WHEN domain_allowlist LIKE '%"' || ? || '"%' THEN 1
+              ELSE 2
+            END
+          LIMIT 1
+        `).bind(emailDomain, emailDomain).first();
+        
+        if (tenantByDomain) {
+          subdomain = tenantByDomain.subdomain;
+        }
+      }
+    }
+    
+    // フォールバック
+    if (!subdomain) {
+      subdomain = 'demo-company';
+    }
     
     const tenant = await c.env.DB.prepare(`
       SELECT * FROM tenants WHERE subdomain = ? AND status = 'active'
@@ -314,6 +342,194 @@ auth.get('/tenant-info', async (c) => {
     return c.json({ 
       success: false, 
       error: 'テナント情報の取得中にエラーが発生しました。' 
+    }, 500);
+  }
+});
+
+/**
+ * 新規アカウント登録
+ * POST /api/auth/signup
+ */
+auth.post('/signup', async (c) => {
+  try {
+    const body = await c.req.json();
+    const { 
+      company_name, 
+      subdomain, 
+      admin_name, 
+      email, 
+      password, 
+      password_confirm,
+      terms_agree 
+    } = body;
+    
+    // バリデーション
+    if (!company_name || !subdomain || !admin_name || !email || !password) {
+      return c.json({ 
+        success: false, 
+        error: '必須項目をすべて入力してください。' 
+      }, 400);
+    }
+
+    if (password !== password_confirm) {
+      return c.json({ 
+        success: false, 
+        error: 'パスワードが一致しません。' 
+      }, 400);
+    }
+
+    if (password.length < 8) {
+      return c.json({ 
+        success: false, 
+        error: 'パスワードは8文字以上で入力してください。' 
+      }, 400);
+    }
+
+    if (!terms_agree) {
+      return c.json({ 
+        success: false, 
+        error: '利用規約およびプライバシーポリシーに同意してください。' 
+      }, 400);
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return c.json({ 
+        success: false, 
+        error: '有効なメールアドレスを入力してください。' 
+      }, 400);
+    }
+
+    const subdomainRegex = /^[a-z0-9-]+$/;
+    if (!subdomainRegex.test(subdomain) || subdomain.length < 3) {
+      return c.json({ 
+        success: false, 
+        error: 'サブドメインは3文字以上の英数字とハイフンで入力してください。' 
+      }, 400);
+    }
+
+    // サブドメイン重複確認
+    const existingTenant = await c.env.DB.prepare(`
+      SELECT id FROM tenants WHERE subdomain = ?
+    `).bind(subdomain).first();
+
+    if (existingTenant) {
+      return c.json({ 
+        success: false, 
+        error: 'このサブドメインは既に使用されています。' 
+      }, 400);
+    }
+
+    // メールアドレス重複確認
+    const existingUser = await c.env.DB.prepare(`
+      SELECT id FROM users WHERE email = ?
+    `).bind(email).first();
+
+    if (existingUser) {
+      return c.json({ 
+        success: false, 
+        error: 'このメールアドレスは既に登録されています。' 
+      }, 400);
+    }
+
+    // パスワードハッシュ化
+    const hashedPassword = await hashPassword(password);
+
+    // テナント作成
+    const tenantId = `tenant_${subdomain.replace(/-/g, '_')}`;
+    const emailDomain = email.split('@')[1];
+    
+    await c.env.DB.prepare(`
+      INSERT INTO tenants (
+        id, name, subdomain, domain_allowlist, plan_id, status, 
+        region, company_type, company_size, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    `).bind(
+      tenantId,
+      company_name,
+      subdomain,
+      JSON.stringify([emailDomain]), // ドメイン許可リスト
+      'standard', // デフォルトプラン
+      'active',
+      'asia-pacific',
+      'logistics',
+      'small',
+    ).run();
+
+    // 管理者ユーザー作成
+    const userId = `user_${subdomain}_admin`.replace(/-/g, '_');
+    
+    await c.env.DB.prepare(`
+      INSERT INTO users (
+        id, tenant_id, email, display_name, hashed_password, 
+        password_algo, status, email_verified, locale, timezone, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    `).bind(
+      userId,
+      tenantId,
+      email,
+      admin_name,
+      hashedPassword,
+      'sha256',
+      'active',
+      0, // メール認証は後で実装
+      'ja-JP',
+      'Asia/Tokyo'
+    ).run();
+
+    // スーパー管理者ロール割り当て
+    const superAdminRole = await c.env.DB.prepare(`
+      SELECT id FROM roles WHERE name = 'super_admin' LIMIT 1
+    `).first();
+
+    if (superAdminRole) {
+      await c.env.DB.prepare(`
+        INSERT INTO user_roles (id, user_id, role_id, assigned_by, created_at)
+        VALUES (?, ?, ?, ?, datetime('now'))
+      `).bind(
+        crypto.randomUUID(),
+        userId,
+        superAdminRole.id,
+        'system'
+      ).run();
+    }
+
+    // 監査ログ記録
+    await c.env.DB.prepare(`
+      INSERT INTO audit_logs (
+        id, tenant_id, actor_user_id, action_type, target_type, target_id,
+        result, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `).bind(
+      crypto.randomUUID(),
+      tenantId,
+      null,
+      'tenant_signup',
+      'tenant',
+      tenantId,
+      'success'
+    ).run();
+
+    return c.json({
+      success: true,
+      message: 'アカウント登録が完了しました。',
+      tenant: {
+        id: tenantId,
+        name: company_name,
+        subdomain: subdomain
+      },
+      user: {
+        id: userId,
+        email: email,
+        display_name: admin_name
+      }
+    });
+
+  } catch (error) {
+    console.error('Signup error:', error);
+    return c.json({ 
+      success: false, 
+      error: 'アカウント登録中にエラーが発生しました。' 
     }, 500);
   }
 });
