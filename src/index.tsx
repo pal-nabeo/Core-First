@@ -879,7 +879,7 @@ app.get('/dashboard', (c) => {
                             </div>
                             <div class="p-6">
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <button onclick="showSection('users'); document.getElementById('add-user-modal').classList.remove('hidden');" class="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                                    <button onclick="showSection('users'); showModal('add-user-modal');" class="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
                                         <i class="fas fa-envelope text-blue-600 text-2xl mb-2"></i>
                                         <span class="text-sm font-medium text-gray-900">ユーザー招待</span>
                                     </button>
@@ -910,7 +910,7 @@ app.get('/dashboard', (c) => {
                                 <h2 class="text-2xl font-bold text-gray-900">ユーザー管理</h2>
                                 <p class="text-gray-600">システム内のすべてのユーザーを管理</p>
                             </div>
-                            <button onclick="document.getElementById('add-user-modal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                            <button onclick="showModal('add-user-modal')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                                 <i class="fas fa-envelope mr-2"></i>
                                 ユーザー招待
                             </button>
@@ -1382,7 +1382,7 @@ app.get('/dashboard', (c) => {
                             <h3 class="text-lg font-medium text-gray-900">ユーザー招待</h3>
                             <p class="text-sm text-gray-600 mt-1">新しいユーザーをメールで招待します</p>
                         </div>
-                        <button onclick="document.getElementById('add-user-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                        <button onclick="hideModal('add-user-modal')" class="text-gray-400 hover:text-gray-600">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -1440,7 +1440,7 @@ app.get('/dashboard', (c) => {
                             </div>
                         </div>
                         <div class="flex justify-end space-x-3 mt-6">
-                            <button type="button" onclick="document.getElementById('add-user-modal').classList.add('hidden')" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            <button type="button" onclick="hideModal('add-user-modal')" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
                                 キャンセル
                             </button>
                             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">

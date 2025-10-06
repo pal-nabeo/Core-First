@@ -48,7 +48,7 @@ licensesApi.get('/stats', async (c) => {
          AND DATE(u2.created_at) <= DATE(al.created_at)
         ) as cumulative_users
       FROM audit_logs al
-      WHERE al.tenant_id = ? AND al.action = 'user_created'
+      WHERE al.tenant_id = ? AND al.action_type = 'user_created'
       AND DATE(al.created_at) >= DATE('now', '-30 days')
       GROUP BY DATE(al.created_at)
       ORDER BY date DESC
@@ -161,7 +161,7 @@ licensesApi.get('/usage-history', async (c) => {
         COUNT(DISTINCT user_id) as active_users
       FROM audit_logs
       WHERE tenant_id = ? 
-      AND action IN ('login', 'api_call', 'page_view')
+      AND action_type IN ('login', 'api_call', 'page_view')
       AND DATE(created_at) = DATE('now')
       GROUP BY strftime('%H', created_at)
       ORDER BY hour
@@ -254,14 +254,21 @@ licensesApi.put('/limits', async (c) => {
 
     if (changes.length > 0) {
       await c.env.DB.prepare(`
-        INSERT INTO audit_logs (user_id, tenant_id, action, details, ip_address, user_agent)
-        VALUES (?, ?, 'license_updated', ?, ?, ?)
+        INSERT INTO audit_logs (
+          id, tenant_id, actor_user_id, action_type, target_type, target_id,
+          payload, ip_address, user_agent, result
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
+        crypto.randomUUID(),
+        'tenant_demo_company', // TODO: セッションからテナントIDを取得
         null, // TODO: セッションから管理者IDを取得
-        1,
-        changes.join('; '),
+        'license_updated',
+        'tenant',
+        'tenant_demo_company',
+        JSON.stringify({ changes: changes.join('; ') }),
         c.req.header('CF-Connecting-IP') || 'unknown',
-        c.req.header('User-Agent') || 'unknown'
+        c.req.header('User-Agent') || 'unknown',
+        'success'
       ).run();
     }
 

@@ -454,7 +454,8 @@ function setupFilterEventListeners() {
 }
 
 // セクション表示切り替え
-function showSection(sectionName) {
+window.showSection = function showSection(sectionName) {
+    console.log('showSection called with:', sectionName);
     // 全てのセクションを非表示
     document.querySelectorAll('.content-section').forEach(section => {
         section.classList.add('hidden');
@@ -767,6 +768,55 @@ function initializeLicenseChart() {
             }
         }
     });
+}
+
+// アクティビティチャート更新
+function updateActivityChart(stats) {
+    if (!charts.activityChart) return;
+    
+    // 仮のデータを使用（実際のデータが利用可能になったら置き換え）
+    const labels = ['1週間前', '6日前', '5日前', '4日前', '3日前', '2日前', '昨日', '今日'];
+    const data = [12, 15, 18, 14, 20, 17, 22, stats.activeUsers || 0];
+    
+    charts.activityChart.data.labels = labels;
+    charts.activityChart.data.datasets[0].data = data;
+    charts.activityChart.update();
+}
+
+// ライセンスチャート更新
+function updateLicenseChart(licenseData) {
+    if (!charts.licenseChart) return;
+    
+    // 仮のデータを使用（実際のデータが利用可能になったら置き換え）
+    const labels = ['1週間前', '6日前', '5日前', '4日前', '3日前', '2日前', '昨日', '今日'];
+    const data = [45, 48, 52, 49, 55, 53, 58, licenseData.used || 0];
+    
+    charts.licenseChart.data.labels = labels;
+    charts.licenseChart.data.datasets[0].data = data;
+    charts.licenseChart.update();
+}
+
+// モーダル表示のヘルパー関数（グローバルに利用可能）
+window.showModal = function showModal(modalId) {
+    console.log('showModal called with:', modalId);
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('hidden');
+        console.log('Modal shown:', modalId);
+    } else {
+        console.error('Modal not found:', modalId);
+    }
+}
+
+window.hideModal = function hideModal(modalId) {
+    console.log('hideModal called with:', modalId);
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+        console.log('Modal hidden:', modalId);
+    } else {
+        console.error('Modal not found:', modalId);
+    }
 }
 
 // 通知表示
@@ -1499,6 +1549,13 @@ window.showSection = function(sectionName) {
     if (sectionName === 'billing') {
         loadBillingHistory();
     }
+    
+    // プロフィールセクションが表示された時にデータを読み込み
+    if (sectionName === 'profile' || sectionName === 'security') {
+        setTimeout(() => {
+            loadProfile();
+        }, 100);
+    }
 };
 
 // ログアウト処理
@@ -1733,15 +1790,4 @@ async function toggle2FA(enable) {
     }
 }
 
-// セクション表示時にプロフィールデータを自動読み込み
-const originalShowSection = showSection;
-showSection = function(sectionId) {
-    originalShowSection(sectionId);
-    
-    // プロフィールセクションが表示された時にデータを読み込み
-    if (sectionId === 'profile' || sectionId === 'security') {
-        setTimeout(() => {
-            loadProfile();
-        }, 100);
-    }
-};
+// プロフィール関連セクションのデータ読み込みを統合
