@@ -2,7 +2,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serveStatic } from 'hono/cloudflare-workers';
-// import { auth } from './routes/auth'; // 一時的にコメントアウト
+import { auth } from './routes/auth-simple';
 import { tenantMiddleware, securityHeaders } from './middleware/auth';
 import type { CloudflareBindings } from './types/auth';
 
@@ -45,7 +45,7 @@ app.use('/static/*', serveStatic({ root: './public' }));
 app.use('/favicon.ico', serveStatic({ path: './public/favicon.ico' }));
 
 // API ルート
-// app.route('/api/auth', auth); // 一時的にコメントアウト
+app.route('/api/auth', auth);
 import { test } from './routes/test';
 app.route('/api/test', test);
 
