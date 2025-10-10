@@ -107,6 +107,7 @@ app.get('/signup', (c) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>新規登録 - Core First</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <link href="/static/login.css" rel="stylesheet">
@@ -115,11 +116,14 @@ app.get('/signup', (c) => {
         <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
             <!-- ロゴとタイトル -->
             <div class="text-center mb-8">
-                <div class="mb-4">
-                    <img src="/static/logos/corefirst-logo-01.svg" alt="Core First" class="h-12 mx-auto">
+                <div class="flex items-center justify-center mb-4">
+                    <img src="/static/logos/corefirst-icon-simple.svg" alt="Core First" class="h-10 w-10 mr-3">
+                    <div class="text-left">
+                        <h1 class="text-xl font-bold text-gray-900">新規アカウント登録</h1>
+                        <p class="text-gray-600 text-sm">Core First</p>
+                    </div>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900 mb-2">新規アカウント登録</h1>
-                <p class="text-gray-600 text-sm">Core Firstにご登録ください</p>
+                <p class="text-gray-600 text-sm">統合管理システムにご登録ください</p>
                 <div class="mt-4 text-xs text-gray-500 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">
                     <i class="fas fa-info-circle mr-1"></i>
                     企業の管理者様のみご登録いただけます
@@ -359,6 +363,7 @@ app.get('/login', (c) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ログイン - Core First</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <link href="/static/login.css" rel="stylesheet">
@@ -367,11 +372,13 @@ app.get('/login', (c) => {
         <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
             <!-- ロゴとタイトル -->
             <div class="text-center mb-8">
-                <div class="mb-4">
-                    <img src="/static/logos/corefirst-logo-01.svg" alt="Core First" class="h-16 mx-auto">
+                <div class="flex items-center justify-center mb-4">
+                    <img src="/static/logos/corefirst-icon-simple.svg" alt="Core First" class="h-12 w-12 mr-3">
+                    <div class="text-left">
+                        <h1 class="text-2xl font-bold text-gray-900">Core First</h1>
+                        <p class="text-gray-600 text-sm">統合管理システム</p>
+                    </div>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900 mb-2">Core First</h1>
-                <p class="text-gray-600 text-sm">統合管理システム</p>
                 ${tenantSubdomain && tenantSubdomain !== 'localhost' ? 
                   `<p class="text-blue-600 text-sm font-medium mt-2">企業: ${tenantSubdomain}</p>` : 
                   ''
@@ -529,6 +536,7 @@ app.get('/admin', (c) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>管理画面 - Core First</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     </head>
@@ -560,6 +568,7 @@ app.get('/dashboard', (c) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>管理者ダッシュボード - Core First</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -572,7 +581,8 @@ app.get('/dashboard', (c) => {
                 <div class="flex flex-col h-full">
                     <!-- ロゴ -->
                     <div class="flex items-center justify-center h-16 bg-blue-600 border-b border-blue-700 px-4">
-                        <img src="/static/logos/corefirst-logo-01.svg" alt="Core First" class="h-8 brightness-0 invert">
+                        <img src="/static/logos/corefirst-icon-simple.svg" alt="Core First" class="h-8 w-8">
+                        <span class="text-white font-bold text-lg ml-3" id="sidebar-title">Core First</span>
                     </div>
 
                     <!-- ナビゲーションメニュー -->
@@ -2036,20 +2046,21 @@ app.get('/', (c) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Core First - 統合管理システム</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     </head>
     <body class="bg-white">
         <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
             <div class="text-center max-w-2xl mx-auto px-4">
-                <!-- ロゴ -->
+                <!-- ロゴとタイトル -->
                 <div class="mb-8">
-                    <img src="/static/logos/corefirst-logo-01.svg" alt="Core First" class="h-24 mx-auto mb-6">
+                    <div class="flex items-center justify-center mb-6">
+                        <img src="/static/logos/corefirst-icon.svg" alt="Core First" class="h-16 w-16 mr-4">
+                        <h1 class="text-4xl font-bold text-gray-900">Core First</h1>
+                    </div>
+                    <p class="text-xl text-gray-600">統合管理システムで、ビジネスを効率化する</p>
                 </div>
-                
-                <!-- タイトル -->
-                <h1 class="text-4xl font-bold text-gray-900 mb-4">Core First</h1>
-                <p class="text-xl text-gray-600 mb-8">統合管理システムで、ビジネスを効率化する</p>
                 
                 <!-- 機能紹介 -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">

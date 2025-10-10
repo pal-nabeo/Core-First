@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Core First Simple Icon -->
+  <defs>
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer circle -->
+  <circle cx="24" cy="24" r="22" fill="url(#primaryGradient)"/>
+  
+  <!-- Inner design elements -->
+  <!-- Top semicircle -->
+  <path d="M 4 24 A 20 20 0 0 1 44 24 Z" fill="#1E293B"/>
+  
+  <!-- Bottom left quarter -->
+  <path d="M 4 24 L 24 24 L 24 44 A 20 20 0 0 1 4 24 Z" fill="#60A5FA"/>
+  
+  <!-- Bottom right quarter -->
+  <path d="M 24 24 L 44 24 A 20 20 0 0 1 24 44 Z" fill="#3B82F6"/>
+  
+  <!-- Center point -->
+  <circle cx="24" cy="24" r="3" fill="#FFFFFF"/>
+  <circle cx="24" cy="24" r="1.5" fill="#1D4ED8"/>
+</svg></content>
+</invoke>

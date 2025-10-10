@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Core First Favicon -->
+  <circle cx="16" cy="16" r="15" fill="#3B82F6"/>
+  <path d="M 2 16 A 14 14 0 0 1 30 16 Z" fill="#1E293B"/>
+  <path d="M 2 16 L 16 16 L 16 30 A 14 14 0 0 1 2 16 Z" fill="#60A5FA"/>
+  <circle cx="16" cy="16" r="2" fill="#FFFFFF"/>
+</svg></content>
+</invoke>

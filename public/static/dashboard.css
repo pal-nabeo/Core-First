@@ -1,5 +1,14 @@
 /* ダッシュボード専用CSS */
 
+/* サイドバー折りたたみ時のロゴとタイトル */
+#sidebar.collapsed #sidebar-title {
+    display: none;
+}
+
+#sidebar:not(.collapsed) .sidebar-icon-only {
+    display: none;
+}
+
 /* サイドバーナビゲーション - ライトテーマ */
 .nav-item {
     @apply flex items-start px-3 py-3 mx-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-900 transition-all duration-200 cursor-pointer border border-transparent;
