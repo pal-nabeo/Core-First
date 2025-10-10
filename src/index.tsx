@@ -117,11 +117,10 @@ app.get('/signup', (c) => {
             <!-- ロゴとタイトル -->
             <div class="text-center mb-8">
                 <div class="flex items-center justify-center mb-4">
-                    <img src="/static/logos/corefirst-icon-simple.svg" alt="Core First" class="h-10 w-10 mr-3">
-                    <div class="text-left">
-                        <h1 class="text-xl font-bold text-gray-900">新規アカウント登録</h1>
-                        <p class="text-gray-600 text-sm">Core First</p>
-                    </div>
+                    <img src="/static/logos/corefirst-text-logo.png" alt="Core First" class="h-8">
+                </div>
+                <div class="mt-4">
+                    <h1 class="text-xl font-bold text-gray-900">新規アカウント登録</h1>
                 </div>
                 <p class="text-gray-600 text-sm">統合管理システムにご登録ください</p>
                 <div class="mt-4 text-xs text-gray-500 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">
@@ -373,11 +372,10 @@ app.get('/login', (c) => {
             <!-- ロゴとタイトル -->
             <div class="text-center mb-8">
                 <div class="flex items-center justify-center mb-4">
-                    <img src="/static/logos/corefirst-icon-simple.svg" alt="Core First" class="h-12 w-12 mr-3">
-                    <div class="text-left">
-                        <h1 class="text-2xl font-bold text-gray-900">Core First</h1>
-                        <p class="text-gray-600 text-sm">統合管理システム</p>
-                    </div>
+                    <img src="/static/logos/corefirst-text-logo.png" alt="Core First" class="h-10">
+                </div>
+                <div class="mt-4">
+                    <p class="text-gray-600 text-sm">統合管理システム</p>
                 </div>
                 ${tenantSubdomain && tenantSubdomain !== 'localhost' ? 
                   `<p class="text-blue-600 text-sm font-medium mt-2">企業: ${tenantSubdomain}</p>` : 
@@ -580,9 +578,8 @@ app.get('/dashboard', (c) => {
             <aside id="sidebar" class="flex-shrink-0 w-64 bg-white transition-all duration-300 ease-in-out shadow-xl border-r border-gray-200">
                 <div class="flex flex-col h-full">
                     <!-- ロゴ -->
-                    <div class="flex items-center justify-center h-16 bg-blue-600 border-b border-blue-700 px-4">
-                        <img src="/static/logos/corefirst-icon-simple.svg" alt="Core First" class="h-8 w-8">
-                        <span class="text-white font-bold text-lg ml-3" id="sidebar-title">Core First</span>
+                    <div class="flex items-center justify-center h-16 bg-white border-b border-gray-200 px-4">
+                        <img src="/static/logos/corefirst-text-logo.png" alt="Core First" class="h-6" id="sidebar-logo">
                     </div>
 
                     <!-- ナビゲーションメニュー -->
@@ -2056,8 +2053,7 @@ app.get('/', (c) => {
                 <!-- ロゴとタイトル -->
                 <div class="mb-8">
                     <div class="flex items-center justify-center mb-6">
-                        <img src="/static/logos/corefirst-icon.svg" alt="Core First" class="h-16 w-16 mr-4">
-                        <h1 class="text-4xl font-bold text-gray-900">Core First</h1>
+                        <img src="/static/logos/corefirst-text-logo.png" alt="Core First" class="h-16">
                     </div>
                     <p class="text-xl text-gray-600">統合管理システムで、ビジネスを効率化する</p>
                 </div>
