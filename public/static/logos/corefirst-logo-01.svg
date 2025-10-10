@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Core First Logo SVG -->
+  <defs>
+    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Icon part -->
+  <g transform="translate(10,10)">
+    <circle cx="20" cy="20" r="18" fill="url(#blueGradient)" opacity="0.1"/>
+    <circle cx="20" cy="20" r="12" fill="url(#blueGradient)" opacity="0.3"/>
+    <circle cx="20" cy="20" r="6" fill="#3B82F6"/>
+    <rect x="16" y="8" width="8" height="4" fill="#3B82F6" rx="2"/>
+    <rect x="16" y="28" width="8" height="4" fill="#3B82F6" rx="2"/>
+    <rect x="8" y="16" width="4" height="8" fill="#3B82F6" rx="2"/>
+    <rect x="28" y="16" width="4" height="8" fill="#3B82F6" rx="2"/>
+  </g>
+  
+  <!-- Text part -->
+  <g transform="translate(60,15)">
+    <!-- CORE -->
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#1F2937">CORE</text>
+    <!-- FIRST -->
+    <text x="0" y="45" font-family="Arial, sans-serif" font-size="20" font-weight="600" fill="#3B82F6">FIRST</text>
+  </g>
+</svg></content>
+</invoke>

@@ -70,7 +70,7 @@ app.route('/api/upgrade', upgradeApi);
 // API 基本情報
 app.get('/api', (c) => {
   return c.json({
-    service: 'PAL物流SaaS ログイン管理システム',
+    service: 'Core First 統合管理システム',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
     tenant: c.get('tenantSubdomain')
@@ -106,7 +106,7 @@ app.get('/signup', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>新規登録 - PAL物流SaaS</title>
+        <title>新規登録 - Core First</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <link href="/static/login.css" rel="stylesheet">
@@ -119,7 +119,7 @@ app.get('/signup', (c) => {
                     <i class="fas fa-truck-moving text-2xl"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-gray-900 mb-2">新規アカウント登録</h1>
-                <p class="text-gray-600 text-sm">PAL物流SaaSにご登録ください</p>
+                <p class="text-gray-600 text-sm">Core Firstにご登録ください</p>
                 <div class="mt-4 text-xs text-gray-500 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">
                     <i class="fas fa-info-circle mr-1"></i>
                     企業の管理者様のみご登録いただけます
@@ -338,7 +338,7 @@ app.get('/signup', (c) => {
 
             <!-- フッター -->
             <div class="mt-8 text-center text-xs text-gray-500">
-                <p>© 2024 PAL物流SaaS. All rights reserved.</p>
+                <p>© 2024 Core First. All rights reserved.</p>
             </div>
         </div>
 
@@ -358,7 +358,7 @@ app.get('/login', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ログイン - PAL物流SaaS</title>
+        <title>ログイン - Core First</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <link href="/static/login.css" rel="stylesheet">
@@ -367,11 +367,11 @@ app.get('/login', (c) => {
         <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
             <!-- ロゴとタイトル -->
             <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full mb-4">
-                    <i class="fas fa-truck-moving text-2xl"></i>
+                <div class="mb-4">
+                    <img src="/static/logos/corefirst-logo-01.svg" alt="Core First" class="h-16 mx-auto">
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900 mb-2">PAL物流SaaS</h1>
-                <p class="text-gray-600 text-sm">物流管理システム</p>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Core First</h1>
+                <p class="text-gray-600 text-sm">統合管理システム</p>
                 ${tenantSubdomain && tenantSubdomain !== 'localhost' ? 
                   `<p class="text-blue-600 text-sm font-medium mt-2">企業: ${tenantSubdomain}</p>` : 
                   ''
@@ -505,7 +505,7 @@ app.get('/login', (c) => {
 
             <!-- フッター -->
             <div class="mt-8 text-center text-xs text-gray-500">
-                <p>© 2024 PAL物流SaaS. All rights reserved.</p>
+                <p>© 2024 Core First. All rights reserved.</p>
                 <div class="mt-2 space-x-4">
                     <a href="/privacy" class="hover:text-gray-700">プライバシーポリシー</a>
                     <a href="/terms" class="hover:text-gray-700">利用規約</a>
@@ -528,7 +528,7 @@ app.get('/admin', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>管理画面 - PAL物流SaaS</title>
+        <title>管理画面 - Core First</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     </head>
@@ -559,7 +559,7 @@ app.get('/dashboard', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>管理者ダッシュボード - PAL物流SaaS</title>
+        <title>管理者ダッシュボード - Core First</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -571,9 +571,8 @@ app.get('/dashboard', (c) => {
             <aside id="sidebar" class="flex-shrink-0 w-64 bg-white transition-all duration-300 ease-in-out shadow-xl border-r border-gray-200">
                 <div class="flex flex-col h-full">
                     <!-- ロゴ -->
-                    <div class="flex items-center justify-center h-16 bg-blue-600 border-b border-blue-700">
-                        <i class="fas fa-truck-moving text-white text-2xl mr-2"></i>
-                        <span class="text-white font-bold text-lg">PAL物流SaaS</span>
+                    <div class="flex items-center justify-center h-16 bg-blue-600 border-b border-blue-700 px-4">
+                        <img src="/static/logos/corefirst-logo-01.svg" alt="Core First" class="h-8 brightness-0 invert">
                     </div>
 
                     <!-- ナビゲーションメニュー -->
@@ -1417,7 +1416,7 @@ app.get('/dashboard', (c) => {
                             <label class="block text-sm font-medium text-gray-700 mb-2">招待メッセージ</label>
                             <textarea name="message" rows="3" 
                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                      placeholder="PAL物流SaaSにご招待いたします。下記のリンクからアカウントを作成してください。"></textarea>
+                                      placeholder="Core Firstにご招待いたします。下記のリンクからアカウントを作成してください。"></textarea>
                             <div class="mt-1 text-xs text-gray-500">カスタムメッセージを追加できます（省略可）</div>
                         </div>
                         <div>
@@ -1872,7 +1871,7 @@ app.get('/invite/:token', (c) => {
 
             <!-- フッター -->
             <div class="mt-8 text-center text-xs text-gray-500">
-                <p>© 2024 PAL物流SaaS. All rights reserved.</p>
+                <p>© 2024 Core First. All rights reserved.</p>
             </div>
         </div>
 
@@ -2036,7 +2035,7 @@ app.get('/', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>PAL物流SaaS - 物流管理システム</title>
+        <title>Core First - 統合管理システム</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     </head>
@@ -2085,7 +2084,7 @@ app.get('/', (c) => {
 
                 <!-- フッター -->
                 <div class="mt-16 text-sm text-gray-500">
-                    <p>© 2024 PAL物流SaaS. All rights reserved.</p>
+                    <p>© 2024 Core First. All rights reserved.</p>
                 </div>
             </div>
         </div>

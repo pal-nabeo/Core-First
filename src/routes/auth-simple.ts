@@ -1,4 +1,4 @@
-// PAL物流SaaS シンプル認証API ルート
+// Core First シンプル認証API ルート
 import { Hono } from 'hono';
 import { setCookie, deleteCookie, getCookie } from 'hono/cookie';
 import type { CloudflareBindings } from '../types/auth';
