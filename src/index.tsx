@@ -115,8 +115,8 @@ app.get('/signup', (c) => {
         <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
             <!-- ロゴとタイトル -->
             <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full mb-4">
-                    <i class="fas fa-truck-moving text-2xl"></i>
+                <div class="mb-4">
+                    <img src="/static/logos/corefirst-logo-01.svg" alt="Core First" class="h-12 mx-auto">
                 </div>
                 <h1 class="text-2xl font-bold text-gray-900 mb-2">新規アカウント登録</h1>
                 <p class="text-gray-600 text-sm">Core Firstにご登録ください</p>
@@ -2043,30 +2043,30 @@ app.get('/', (c) => {
         <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
             <div class="text-center max-w-2xl mx-auto px-4">
                 <!-- ロゴ -->
-                <div class="inline-flex items-center justify-center w-24 h-24 bg-blue-600 text-white rounded-full mb-8">
-                    <i class="fas fa-truck-moving text-4xl"></i>
+                <div class="mb-8">
+                    <img src="/static/logos/corefirst-logo-01.svg" alt="Core First" class="h-24 mx-auto mb-6">
                 </div>
                 
                 <!-- タイトル -->
-                <h1 class="text-4xl font-bold text-gray-900 mb-4">PAL物流SaaS</h1>
-                <p class="text-xl text-gray-600 mb-8">効率的な物流管理で、ビジネスを加速させる</p>
+                <h1 class="text-4xl font-bold text-gray-900 mb-4">Core First</h1>
+                <p class="text-xl text-gray-600 mb-8">統合管理システムで、ビジネスを効率化する</p>
                 
                 <!-- 機能紹介 -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                     <div class="p-6 bg-white rounded-lg shadow-md">
                         <i class="fas fa-users text-blue-600 text-3xl mb-4"></i>
                         <h3 class="text-lg font-semibold mb-2">ユーザー管理</h3>
-                        <p class="text-gray-600">企業単位でのマルチテナント対応</p>
+                        <p class="text-gray-600">企業単位でのマルチテナント対応統合管理</p>
                     </div>
                     <div class="p-6 bg-white rounded-lg shadow-md">
                         <i class="fas fa-shield-alt text-blue-600 text-3xl mb-4"></i>
                         <h3 class="text-lg font-semibold mb-2">セキュリティ</h3>
-                        <p class="text-gray-600">2要素認証と高度な権限管理</p>
+                        <p class="text-gray-600">2要素認証とスーパー管理者権限管理</p>
                     </div>
                     <div class="p-6 bg-white rounded-lg shadow-md">
-                        <i class="fas fa-chart-bar text-blue-600 text-3xl mb-4"></i>
-                        <h3 class="text-lg font-semibold mb-2">分析・レポート</h3>
-                        <p class="text-gray-600">詳細な使用状況分析と監査ログ</p>
+                        <i class="fas fa-cogs text-blue-600 text-3xl mb-4"></i>
+                        <h3 class="text-lg font-semibold mb-2">統合管理</h3>
+                        <p class="text-gray-600">プラン管理・監査ログ・レポート機能</p>
                     </div>
                 </div>
                 
