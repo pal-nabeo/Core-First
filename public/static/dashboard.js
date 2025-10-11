@@ -24,7 +24,21 @@ function initializeDashboard() {
     // サイドバーの状態を復元
     const savedSidebarState = localStorage.getItem('sidebarCollapsed');
     if (savedSidebarState === 'true') {
-        toggleSidebar();
+        // 初期状態で折りたたみ状態に設定
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.classList.add('sidebar-collapsed');
+            sidebar.classList.remove('w-80');
+            // ツールチップイベントリスナーを設定
+            setupTooltipListeners();
+        }
+    } else {
+        // 展開状態の場合は幅を80に設定
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.classList.add('w-80');
+            sidebar.classList.remove('sidebar-collapsed');
+        }
     }
 
     // 前回のセクションを復元
@@ -38,6 +52,12 @@ function initializeDashboard() {
     
     // フィルターイベントリスナー設定
     setupFilterEventListeners();
+    
+    // サイドバートグルボタンのイベントリスナー設定
+    const toggleButton = document.getElementById('sidebar-toggle');
+    if (toggleButton) {
+        toggleButton.addEventListener('click', toggleSidebar);
+    }
 }
 
 // イベントリスナー設定
@@ -535,17 +555,102 @@ function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     if (!sidebar) return;
 
-    const isCollapsed = sidebar.classList.contains('w-16');
+    const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
     
     if (isCollapsed) {
-        sidebar.classList.remove('w-16');
-        sidebar.classList.add('w-64');
+        // 展開状態に切り替え
+        sidebar.classList.remove('sidebar-collapsed');
+        sidebar.classList.add('w-80'); // 幅を80に設定
         localStorage.setItem('sidebarCollapsed', 'false');
+        
+        // ツールチップを非表示にする
+        hideAllTooltips();
+        
+        // ホバーイベントリスナーを削除
+        removeTooltipListeners();
     } else {
-        sidebar.classList.remove('w-64');
-        sidebar.classList.add('w-16');
+        // 折りたたみ状態に切り替え
+        sidebar.classList.remove('w-80');
+        sidebar.classList.add('sidebar-collapsed');
         localStorage.setItem('sidebarCollapsed', 'true');
+        
+        // ツールチップイベントリスナーを追加
+        setupTooltipListeners();
     }
+}
+
+// ツールチップイベントリスナー設定
+function setupTooltipListeners() {
+    const navItems = document.querySelectorAll('.nav-item[data-tooltip]');
+    
+    navItems.forEach(item => {
+        item.addEventListener('mouseenter', showTooltip);
+        item.addEventListener('mouseleave', hideTooltip);
+    });
+}
+
+// ツールチップイベントリスナー削除
+function removeTooltipListeners() {
+    const navItems = document.querySelectorAll('.nav-item[data-tooltip]');
+    
+    navItems.forEach(item => {
+        item.removeEventListener('mouseenter', showTooltip);
+        item.removeEventListener('mouseleave', hideTooltip);
+    });
+}
+
+// ツールチップ表示
+function showTooltip(event) {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar.classList.contains('sidebar-collapsed')) return;
+    
+    const element = event.currentTarget;
+    const tooltipText = element.getAttribute('data-tooltip');
+    if (!tooltipText) return;
+    
+    // 既存のツールチップを削除
+    hideAllTooltips();
+    
+    // 新しいツールチップを作成
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    tooltip.textContent = tooltipText;
+    tooltip.id = 'nav-tooltip';
+    
+    // ツールチップを要素に追加
+    element.style.position = 'relative';
+    element.appendChild(tooltip);
+    
+    // アニメーション用の遅延
+    setTimeout(() => {
+        tooltip.style.opacity = '1';
+    }, 100);
+}
+
+// ツールチップ非表示
+function hideTooltip(event) {
+    const tooltip = document.getElementById('nav-tooltip');
+    if (tooltip) {
+        tooltip.style.opacity = '0';
+        setTimeout(() => {
+            if (tooltip.parentElement) {
+                tooltip.remove();
+            }
+        }, 200);
+    }
+}
+
+// 全ツールチップ非表示
+function hideAllTooltips() {
+    const tooltips = document.querySelectorAll('.tooltip');
+    tooltips.forEach(tooltip => {
+        tooltip.style.opacity = '0';
+        setTimeout(() => {
+            if (tooltip.parentElement) {
+                tooltip.remove();
+            }
+        }, 200);
+    });
 }
 
 // ユーザー追加処理
@@ -1898,3 +2003,25 @@ async function deleteUser(userId, userName) {
 }
 
 // プロフィール関連セクションのデータ読み込みを統合
+
+// ==============================================
+// ユーザーメニュー機能
+// ==============================================
+
+// ユーザーメニュー切り替え
+function toggleUserMenu() {
+    const menu = document.getElementById('user-menu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+}
+
+// ユーザーメニュー外クリックで閉じる
+document.addEventListener('click', function(event) {
+    const menu = document.getElementById('user-menu');
+    const button = document.getElementById('user-menu-button');
+    
+    if (menu && button && !button.contains(event.target) && !menu.contains(event.target)) {
+        menu.classList.add('hidden');
+    }
+});

@@ -1,0 +1,623 @@
+/* レポート管理画面用CSS */
+.main-header {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.nav-container {
+    background: #1e293b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: #94a3b8;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    margin: 2px 8px;
+}
+
+.nav-item:hover {
+    color: #e2e8f0;
+    background-color: #334155;
+    transform: translateX(4px);
+}
+
+.nav-item.active {
+    color: #3b82f6;
+    background-color: #1e40af20;
+    font-weight: 600;
+}
+
+.nav-item i {
+    margin-right: 8px;
+    width: 20px;
+    text-align: center;
+}
+
+/* パネル共通スタイル */
+.control-panel, .report-builder, .reports-list, .preview-section, .automation-panel {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.panel-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #374151;
+    display: flex;
+    align-items: center;
+}
+
+.panel-content {
+    padding: 24px;
+}
+
+/* ボタンスタイル */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    color: #374151;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    background: transparent;
+    border: 2px solid #3b82f6;
+    color: #3b82f6;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+    background: #3b82f6;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.control-actions, .builder-actions, .preview-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* レポート設定フォーム */
+.report-config {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    background: #f9fafb;
+}
+
+.config-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.config-row:last-child {
+    margin-bottom: 0;
+}
+
+.config-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.config-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.config-input, .config-select {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    color: #374151;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+}
+
+.config-input:focus, .config-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* セクションタイトル */
+.config-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+}
+
+/* チャート設定 */
+.chart-config {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    background: #f9fafb;
+}
+
+.chart-types {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+
+.chart-type-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chart-type-item:hover {
+    border-color: #3b82f6;
+    background: #f0f9ff;
+}
+
+.chart-type-item.active {
+    border-color: #3b82f6;
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.chart-type-item i {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.chart-type-item span {
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* フィールド選択 */
+.field-selection {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    background: #f9fafb;
+}
+
+.fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.field-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.field-item:hover {
+    background: #f0f9ff;
+    border-color: #3b82f6;
+}
+
+.field-item input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.field-item label {
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    flex: 1;
+}
+
+/* レポート一覧 */
+.reports-filter {
+    margin-bottom: 16px;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    color: #374151;
+    font-size: 14px;
+}
+
+.reports-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.report-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.report-item:hover {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.report-item.active {
+    border-color: #3b82f6;
+    background: #dbeafe;
+}
+
+.report-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+    font-size: 14px;
+}
+
+.report-info {
+    flex: 1;
+}
+
+.report-name {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 2px;
+}
+
+.report-category {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 2px;
+}
+
+.report-date {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.report-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.report-action {
+    padding: 4px;
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.report-action:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* レポートプレビュー */
+.report-preview-container {
+    min-height: 400px;
+}
+
+.preview-chart-container {
+    height: 400px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+}
+
+.preview-table-container {
+    overflow-x: auto;
+}
+
+.preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.preview-table th,
+.preview-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.preview-table th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #374151;
+    font-size: 14px;
+}
+
+.preview-table td {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.preview-table tr:hover {
+    background: #f9fafb;
+}
+
+/* 自動レポート設定 */
+.automation-list {
+    space-y: 16px;
+}
+
+.automation-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fafafa;
+    transition: all 0.2s ease;
+}
+
+.automation-item:hover {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.automation-info {
+    flex: 1;
+}
+
+.automation-name {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.automation-desc {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.automation-schedule {
+    color: #9ca3af;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.automation-status {
+    display: flex;
+    align-items: center;
+    margin-right: 16px;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.status-indicator.active {
+    background: #10b981;
+}
+
+.status-indicator.inactive {
+    background: #6b7280;
+}
+
+.status-text {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.automation-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 6px;
+    background: transparent;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.action-btn.edit:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.action-btn.toggle:hover {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.add-automation-section {
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .config-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-types {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .fields-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .automation-item {
+        flex-direction: column;
+        align-items: start;
+        gap: 12px;
+    }
+    
+    .automation-actions {
+        align-self: end;
+    }
+    
+    .panel-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: start;
+    }
+    
+    .control-actions, .builder-actions, .preview-actions {
+        flex-wrap: wrap;
+    }
+}
+
+/* アニメーション */
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ローディングスピナー */
+.loading-spinner {
+    border: 3px solid #f3f4f6;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+    margin-right: 12px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ドラッグ&ドロップ対応 */
+.drag-over {
+    border-color: #3b82f6;
+    background: #f0f9ff;
+}
+
+.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}

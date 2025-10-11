@@ -1,0 +1,277 @@
+/* CLO向けチュートリアル・トップページ専用CSS */
+
+/* 機能カードスタイル */
+.feature-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+}
+
+.feature-card:hover .feature-badge {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.05);
+}
+
+.feature-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.feature-description {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.feature-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  transform: scale(0.9);
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+/* ユーザーメニュースタイル */
+#user-menu {
+  min-width: 220px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+#user-menu a {
+  transition: background-color 0.15s ease;
+}
+
+/* ボタンアニメーション */
+.btn-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-gradient:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+/* ステップガイドスタイル */
+.step-circle {
+  transition: transform 0.3s ease;
+}
+
+.step-circle:hover {
+  transform: scale(1.1);
+}
+
+/* アニメーション */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 遅延アニメーション */
+.feature-card:nth-child(1) {
+  animation: fadeInUp 0.6s ease 0.1s both;
+}
+
+.feature-card:nth-child(2) {
+  animation: fadeInUp 0.6s ease 0.2s both;
+}
+
+.feature-card:nth-child(3) {
+  animation: fadeInUp 0.6s ease 0.3s both;
+}
+
+.feature-card:nth-child(4) {
+  animation: fadeInUp 0.6s ease 0.4s both;
+}
+
+.feature-card:nth-child(5) {
+  animation: fadeInUp 0.6s ease 0.5s both;
+}
+
+.feature-card:nth-child(6) {
+  animation: fadeInUp 0.6s ease 0.6s both;
+}
+
+/* グラデーションテキスト */
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ロード時アニメーション */
+.welcome-animation {
+  animation: slideInLeft 0.8s ease;
+}
+
+/* ホバーエフェクト */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .feature-card {
+    padding: 20px;
+  }
+  
+  .feature-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+  }
+  
+  .feature-title {
+    font-size: 16px;
+  }
+  
+  .feature-description {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .feature-card {
+    padding: 16px;
+  }
+  
+  .feature-icon {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .grid-cols-1 {
+    gap: 16px;
+  }
+}
+
+/* 特別なアクセントカラー */
+.accent-blue {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.accent-green {
+  background: linear-gradient(135deg, #10b981, #047857);
+}
+
+.accent-purple {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.accent-orange {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+.accent-red {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.accent-yellow {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+/* パルスアニメーション */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+/* 光るエフェクト */
+.glow-on-hover {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-on-hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.glow-on-hover:hover::before {
+  left: 100%;
+}

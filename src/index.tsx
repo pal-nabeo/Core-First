@@ -117,6 +117,9 @@ app.get('/signup', (c) => {
             <!-- ロゴとタイトル -->
             <div class="text-center mb-8">
                 <div class="flex flex-col items-center justify-center mb-4">
+                    <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                         alt="Core First Logo" 
+                         class="w-12 h-12 mb-3">
                     <h2 class="text-2xl font-bold text-blue-900 mb-4">Core First</h2>
                     <h1 class="text-xl font-bold text-gray-900">新規アカウント登録</h1>
                 </div>
@@ -370,6 +373,9 @@ app.get('/login', (c) => {
             <!-- ロゴとタイトル -->
             <div class="text-center mb-8">
                 <div class="flex flex-col items-center justify-center mb-4">
+                    <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                         alt="Core First Logo" 
+                         class="w-12 h-12 mb-3">
                     <h2 class="text-3xl font-bold text-blue-900 mb-4">Core First</h2>
                     <p class="text-gray-600 text-sm">統合管理システム</p>
                 </div>
@@ -539,6 +545,9 @@ app.get('/admin', (c) => {
             <!-- 認証チェック中のローディング -->
             <div id="loading" class="flex items-center justify-center min-h-screen">
                 <div class="text-center">
+                    <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                         alt="Core First Logo" 
+                         class="w-12 h-12 mx-auto mb-4">
                     <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
                     <p class="text-gray-600">読み込み中...</p>
                 </div>
@@ -554,7 +563,7 @@ app.get('/admin', (c) => {
 
 
 // 管理者ダッシュボード（認証必要）
-app.get('/dashboard', (c) => {
+app.get('/admin-dashboard', (c) => {
   return c.html(`
     <!DOCTYPE html>
     <html lang="ja">
@@ -571,132 +580,144 @@ app.get('/dashboard', (c) => {
     <body class="bg-gray-50">
         <div class="flex h-screen overflow-hidden">
             <!-- サイドバー -->
-            <aside id="sidebar" class="flex-shrink-0 w-64 bg-white transition-all duration-300 ease-in-out shadow-xl border-r border-gray-200">
+            <aside id="sidebar" class="flex-shrink-0 w-80 bg-white transition-all duration-300 ease-in-out shadow-xl border-r border-gray-200">
                 <div class="flex flex-col h-full">
                     <!-- ロゴ -->
-                    <div class="flex items-center justify-center h-16 bg-white border-b border-gray-200 px-4">
-                        <h3 class="text-lg font-bold text-blue-900" id="sidebar-logo">Core First</h3>
+                    <div class="flex items-center h-16 bg-white border-b border-gray-200 px-4">
+                        <!-- 展開時のロゴ（画像 + テキスト） -->
+                        <div class="flex items-center sidebar-text" id="sidebar-logo">
+                            <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                                 alt="Core First Logo" 
+                                 class="w-8 h-8 mr-3">
+                            <h3 class="text-lg font-bold text-blue-900">Core First</h3>
+                        </div>
+                        <!-- 折りたたみ時のロゴ（画像のみ） -->
+                        <div class="sidebar-icon hidden flex items-center justify-center" id="sidebar-logo-collapsed">
+                            <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                                 alt="Core First Logo" 
+                                 class="w-8 h-8">
+                        </div>
                     </div>
 
                     <!-- ナビゲーションメニュー -->
                     <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
                         <!-- ダッシュボード -->
-                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 px-3 py-2 bg-gray-50 rounded-lg mx-2">
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 px-3 py-2 bg-gray-50 rounded-lg mx-2 sidebar-text">
                             <i class="fas fa-home mr-2 text-blue-600"></i>メイン
                         </div>
-                        <a href="#" onclick="showSection('overview')" class="nav-item active" data-section="overview">
-                            <i class="fas fa-tachometer-alt mr-3 text-lg text-blue-600"></i>
-                            <div class="flex-1">
+                        <a href="#" onclick="showSection('overview')" class="nav-item active" data-section="overview" data-tooltip="ダッシュボード - 概要・統計情報">
+                            <i class="fas fa-tachometer-alt text-lg text-blue-600 nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
                                 <span class="font-medium">ダッシュボード</span>
                                 <div class="text-xs mt-0.5">概要・統計情報</div>
                             </div>
                         </a>
 
                         <!-- ユーザー管理セクション -->
-                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-blue-50 rounded-lg mx-2">
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-blue-50 rounded-lg mx-2 sidebar-text">
                             <i class="fas fa-users-cog mr-2 text-blue-600"></i>管理機能
                         </div>
                         
                         <!-- ユーザー管理 -->
-                        <a href="#" onclick="showSection('users')" class="nav-item" data-section="users">
-                            <i class="fas fa-users mr-3 text-lg text-blue-600"></i>
-                            <div class="flex-1">
+                        <a href="#" onclick="showSection('users')" class="nav-item" data-section="users" data-tooltip="ユーザー管理 - アカウント・権限管理">
+                            <i class="fas fa-users text-lg text-blue-600 nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
                                 <span class="font-medium">ユーザー管理</span>
                                 <div class="text-xs mt-0.5">アカウント・権限管理</div>
                             </div>
                         </a>
                         
                         <!-- ライセンス管理 -->
-                        <a href="#" onclick="showSection('licenses')" class="nav-item" data-section="licenses">
-                            <i class="fas fa-key mr-3 text-lg text-yellow-600"></i>
-                            <div class="flex-1">
+                        <a href="#" onclick="showSection('licenses')" class="nav-item" data-section="licenses" data-tooltip="ライセンス管理 - 使用量・制限管理">
+                            <i class="fas fa-key text-lg text-blue-600 nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
                                 <span class="font-medium">ライセンス管理</span>
                                 <div class="text-xs mt-0.5">使用量・制限管理</div>
                             </div>
                         </a>
 
                         <!-- 権限管理 -->
-                        <a href="#" onclick="showSection('roles')" class="nav-item" data-section="roles">
-                            <i class="fas fa-shield-alt mr-3 text-lg text-green-600"></i>
-                            <div class="flex-1">
+                        <a href="#" onclick="showSection('roles')" class="nav-item" data-section="roles" data-tooltip="権限管理 - ロール・アクセス制御">
+                            <i class="fas fa-shield-alt text-lg text-blue-600 nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
                                 <span class="font-medium">権限管理</span>
                                 <div class="text-xs mt-0.5">ロール・アクセス制御</div>
                             </div>
                         </a>
 
                         <!-- システムセクション -->
-                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-green-50 rounded-lg mx-2">
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-green-50 rounded-lg mx-2 sidebar-text">
                             <i class="fas fa-cogs mr-2 text-green-600"></i>システム
                         </div>
                         
                         <!-- 監査ログ -->
-                        <a href="#" onclick="showSection('audit')" class="nav-item" data-section="audit">
-                            <i class="fas fa-history mr-3 text-lg text-purple-600"></i>
-                            <div class="flex-1">
+                        <a href="#" onclick="showSection('audit')" class="nav-item" data-section="audit" data-tooltip="監査ログ - アクティビティ履歴">
+                            <i class="fas fa-history text-lg text-blue-600 nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
                                 <span class="font-medium">監査ログ</span>
                                 <div class="text-xs mt-0.5">アクティビティ履歴</div>
                             </div>
                         </a>
                         
                         <!-- システム設定 -->
-                        <a href="#" onclick="showSection('settings')" class="nav-item" data-section="settings">
-                            <i class="fas fa-cog mr-3 text-lg text-gray-600"></i>
-                            <div class="flex-1">
+                        <a href="#" onclick="showSection('settings')" class="nav-item" data-section="settings" data-tooltip="システム設定 - 基本設定・環境設定">
+                            <i class="fas fa-cog text-lg text-blue-600 nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
                                 <span class="font-medium">システム設定</span>
                                 <div class="text-xs mt-0.5">基本設定・環境設定</div>
                             </div>
                         </a>
 
                         <!-- レポート -->
-                        <a href="#" onclick="showSection('reports')" class="nav-item" data-section="reports">
-                            <i class="fas fa-chart-bar mr-3 text-lg text-red-600"></i>
-                            <div class="flex-1">
+                        <a href="#" onclick="showSection('reports')" class="nav-item" data-section="reports" data-tooltip="レポート - 統計・分析・エクスポート">
+                            <i class="fas fa-chart-bar text-lg text-blue-600 nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
                                 <span class="font-medium">レポート</span>
                                 <div class="text-xs mt-0.5">統計・分析・エクスポート</div>
                             </div>
                         </a>
 
                         <!-- 課金・プランセクション -->
-                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-orange-50 rounded-lg mx-2">
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-orange-50 rounded-lg mx-2 sidebar-text">
                             <i class="fas fa-credit-card mr-2 text-orange-600"></i>課金・プラン
                         </div>
                         
                         <!-- アップグレード -->
-                        <a href="#" onclick="showSection('upgrade')" class="nav-item" data-section="upgrade">
-                            <i class="fas fa-arrow-up mr-3 text-lg text-orange-600"></i>
-                            <div class="flex-1">
+                        <a href="#" onclick="showSection('upgrade')" class="nav-item" data-section="upgrade" data-tooltip="アップグレード - プラン変更・料金確認">
+                            <i class="fas fa-arrow-up text-lg text-blue-600 nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
                                 <span class="font-medium">アップグレード</span>
                                 <div class="text-xs mt-0.5">プラン変更・料金確認</div>
                             </div>
                         </a>
                         
                         <!-- 課金履歴 -->
-                        <a href="#" onclick="showSection('billing')" class="nav-item" data-section="billing">
-                            <i class="fas fa-receipt mr-3 text-lg text-orange-600"></i>
-                            <div class="flex-1">
+                        <a href="#" onclick="showSection('billing')" class="nav-item" data-section="billing" data-tooltip="課金履歴 - 請求・支払い履歴">
+                            <i class="fas fa-receipt text-lg text-blue-600 nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
                                 <span class="font-medium">課金履歴</span>
                                 <div class="text-xs mt-0.5">請求・支払い履歴</div>
                             </div>
                         </a>
 
                         <!-- アカウント管理セクション -->
-                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-purple-50 rounded-lg mx-2">
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-purple-50 rounded-lg mx-2 sidebar-text">
                             <i class="fas fa-user-cog mr-2 text-purple-600"></i>アカウント
                         </div>
                         
                         <!-- プロフィール編集 -->
-                        <a href="#" onclick="showSection('profile')" class="nav-item" data-section="profile">
-                            <i class="fas fa-user-edit mr-3 text-lg text-purple-600"></i>
-                            <div class="flex-1">
+                        <a href="#" onclick="showSection('profile')" class="nav-item" data-section="profile" data-tooltip="プロフィール - 基本情報・設定変更">
+                            <i class="fas fa-user-edit text-lg text-blue-600 nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
                                 <span class="font-medium">プロフィール</span>
                                 <div class="text-xs mt-0.5">基本情報・設定変更</div>
                             </div>
                         </a>
                         
                         <!-- セキュリティ設定 -->
-                        <a href="#" onclick="showSection('security')" class="nav-item" data-section="security">
-                            <i class="fas fa-shield-alt mr-3 text-lg text-purple-600"></i>
-                            <div class="flex-1">
+                        <a href="#" onclick="showSection('security')" class="nav-item" data-section="security" data-tooltip="セキュリティ - パスワード・2FA設定">
+                            <i class="fas fa-lock text-lg text-blue-600 nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
                                 <span class="font-medium">セキュリティ</span>
                                 <div class="text-xs mt-0.5">パスワード・2FA設定</div>
                             </div>
@@ -709,14 +730,14 @@ app.get('/dashboard', (c) => {
                             <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
                                 <i class="fas fa-user"></i>
                             </div>
-                            <div class="ml-3">
+                            <div class="ml-3 sidebar-text">
                                 <p class="text-sm font-medium text-gray-900" id="user-name">管理者</p>
                                 <p class="text-xs text-gray-600" id="user-role">super_admin</p>
                             </div>
                         </div>
-                        <button onclick="logout()" class="mt-3 w-full bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm transition-colors shadow-sm">
-                            <i class="fas fa-sign-out-alt mr-2"></i>
-                            ログアウト
+                        <button onclick="logout()" class="mt-3 w-full bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm transition-colors shadow-sm" data-tooltip="ログアウト">
+                            <i class="fas fa-sign-out-alt mr-2 nav-icon"></i>
+                            <span class="sidebar-text">ログアウト</span>
                         </button>
                     </div>
                 </div>
@@ -742,6 +763,49 @@ app.get('/dashboard', (c) => {
                         </div>
                         <div class="text-sm text-gray-600">
                             <span id="current-time"></span>
+                        </div>
+                        
+                        <!-- ユーザープロファイルドロップダウン -->
+                        <div class="relative">
+                            <button onclick="toggleUserMenu()" id="user-menu-button" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 focus:outline-none">
+                                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-sm font-medium">管</span>
+                                </div>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            
+                            <!-- ドロップダウンメニュー -->
+                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                                <!-- ユーザー情報 -->
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <p class="text-sm font-medium text-gray-900">管理者</p>
+                                    <p class="text-xs text-gray-500">admin@corefirst.com</p>
+                                    <span class="inline-block mt-1 px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full">スーパー管理者</span>
+                                </div>
+                                
+                                <!-- メニュー項目 -->
+                                <div class="py-1">
+                                    <a href="#" onclick="showSection('profile')" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user mr-3 text-gray-400"></i>
+                                        プロファイル設定
+                                    </a>
+                                    <a href="#" onclick="showSection('security')" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-shield-alt mr-3 text-gray-400"></i>
+                                        セキュリティ設定
+                                    </a>
+                                    <a href="/dashboard" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-tachometer-alt mr-3 text-gray-400"></i>
+                                        CLOダッシュボード
+                                    </a>
+                                </div>
+                                
+                                <div class="border-t border-gray-100 py-1">
+                                    <a href="#" onclick="logout()" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                        <i class="fas fa-sign-out-alt mr-3"></i>
+                                        ログアウト
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -1745,7 +1809,7 @@ app.get('/invite/:token', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>アカウント作成 - PAL物流SaaS</title>
+        <title>アカウント作成 - Core First</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     </head>
@@ -1753,11 +1817,11 @@ app.get('/invite/:token', (c) => {
         <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
             <!-- ロゴとタイトル -->
             <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full mb-4">
-                    <i class="fas fa-truck-moving text-2xl"></i>
-                </div>
+                <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                     alt="Core First Logo" 
+                     class="w-16 h-16 mx-auto mb-4">
                 <h1 class="text-2xl font-bold text-gray-900 mb-2">アカウント作成</h1>
-                <p class="text-gray-600 text-sm">PAL物流SaaSへようこそ</p>
+                <p class="text-gray-600 text-sm">Core Firstへようこそ</p>
             </div>
 
             <!-- エラー表示 -->
@@ -2049,6 +2113,9 @@ app.get('/', (c) => {
                 <!-- ロゴとタイトル -->
                 <div class="mb-8">
                     <div class="flex items-center justify-center mb-6">
+                        <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                             alt="Core First Logo" 
+                             class="w-16 h-16 mr-4">
                         <h1 class="text-4xl font-bold text-blue-900">Core First</h1>
                     </div>
                     <p class="text-xl text-gray-600">統合管理システムで、ビジネスを効率化する</p>
@@ -2160,6 +2227,2030 @@ app.get('/', (c) => {
                     console.log('ログインしていない状態です');
                 });
         </script>
+    </body>
+    </html>
+  `);
+});
+
+// CLO向けチュートリアル・トップページ（ログイン後のデフォルト）
+app.get('/dashboard', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Core First - CLO向けサイト</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <link href="/static/clo-tutorial.css" rel="stylesheet">
+    </head>
+    <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+        <!-- ヘッダー -->
+        <header class="bg-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <!-- ロゴ -->
+                    <div class="flex items-center">
+                        <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                             alt="Core First Logo" 
+                             class="w-8 h-8 mr-3">
+                        <h1 class="text-xl font-bold text-blue-900">Core First</h1>
+                        <span class="ml-2 text-sm text-gray-500">CLO向けサイト</span>
+                    </div>
+                    
+                    <!-- ユーザープロファイル -->
+                    <div class="flex items-center space-x-4">
+                        <div class="text-sm text-gray-600">
+                            <span id="current-time"></span>
+                        </div>
+                        <div class="relative">
+                            <button onclick="toggleUserMenu()" id="user-menu-button" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 focus:outline-none">
+                                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-sm font-medium">C</span>
+                                </div>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            
+                            <!-- ドロップダウンメニュー -->
+                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <p class="text-sm font-medium text-gray-900">CLO ユーザー</p>
+                                    <p class="text-xs text-gray-500">clo@example.com</p>
+                                    <span class="inline-block mt-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">CLO</span>
+                                </div>
+                                <div class="py-1">
+                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user mr-3 text-gray-400"></i>プロファイル設定
+                                    </a>
+                                    <a href="/admin-dashboard" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-cogs mr-3 text-gray-400"></i>管理者ダッシュボード
+                                    </a>
+                                </div>
+                                <div class="border-t border-gray-100 py-1">
+                                    <a href="#" onclick="logout()" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                        <i class="fas fa-sign-out-alt mr-3"></i>ログアウト
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <!-- ウェルカムセクション -->
+            <div class="text-center mb-16">
+                <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                    物流・サプライチェーン管理へようこそ
+                </h1>
+                <p class="text-xl text-gray-600 mb-8">
+                    AIを活用した高度な分析で、物流効率を最大化しましょう
+                </p>
+                <div class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-play mr-2"></i>
+                    チュートリアルを開始
+                </div>
+            </div>
+
+            <!-- 機能カードグリッド -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+                <!-- メインダッシュボード -->
+                <div class="feature-card" onclick="navigateTo('/main-dashboard')">
+                    <div class="feature-icon bg-blue-100">
+                        <i class="fas fa-tachometer-alt text-blue-600 text-3xl"></i>
+                    </div>
+                    <h3 class="feature-title">メインダッシュボード</h3>
+                    <p class="feature-description">
+                        総合評価と利用状況の可視化<br>
+                        KPI監視とリアルタイム分析
+                    </p>
+                    <div class="feature-badge">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- AI分析・チャット -->
+                <div class="feature-card" onclick="navigateTo('/ai-analysis')">
+                    <div class="feature-icon bg-green-100">
+                        <i class="fas fa-brain text-green-600 text-3xl"></i>
+                    </div>
+                    <h3 class="feature-title">AI分析・チャット</h3>
+                    <p class="feature-description">
+                        積載効率・庫内作業・荷待ち時間の改善<br>
+                        自然言語での相談・質問
+                    </p>
+                    <div class="feature-badge">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- データ連携・マッピング -->
+                <div class="feature-card" onclick="navigateTo('/data-mapping')">
+                    <div class="feature-icon bg-purple-100">
+                        <i class="fas fa-upload text-purple-600 text-3xl"></i>
+                    </div>
+                    <h3 class="feature-title">データ連携・マッピング</h3>
+                    <p class="feature-description">
+                        CSV・Excel等のデータアップロード<br>
+                        AI自動マッピングとデータ変換
+                    </p>
+                    <div class="feature-badge">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- データ連携・統合管理 -->
+                <div class="feature-card" onclick="navigateTo('/data-integration')">
+                    <div class="feature-icon bg-orange-100">
+                        <i class="fas fa-database text-orange-600 text-3xl"></i>
+                    </div>
+                    <h3 class="feature-title">データ連携・統合管理</h3>
+                    <p class="feature-description">
+                        外部システムとのAPI連携<br>
+                        IoTデバイス・ERP統合
+                    </p>
+                    <div class="feature-badge">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- レポート管理 -->
+                <div class="feature-card" onclick="navigateTo('/report-management')">
+                    <div class="feature-icon bg-red-100">
+                        <i class="fas fa-file-alt text-red-600 text-3xl"></i>
+                    </div>
+                    <h3 class="feature-title">レポート管理</h3>
+                    <p class="feature-description">
+                        自動レポート生成・スケジュール配信<br>
+                        カスタムレポート・共有機能
+                    </p>
+                    <div class="feature-badge">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- ライセンス・チーム管理 -->
+                <div class="feature-card" onclick="navigateTo('/license-management')">
+                    <div class="feature-icon bg-yellow-100">
+                        <i class="fas fa-users-cog text-yellow-600 text-3xl"></i>
+                    </div>
+                    <h3 class="feature-title">ライセンス・チーム管理</h3>
+                    <p class="feature-description">
+                        プラン管理・課金処理<br>
+                        ユーザー招待・権限設定
+                    </p>
+                    <div class="feature-badge">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- はじめ方ガイド -->
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                        <i class="fas fa-rocket mr-3 text-blue-600"></i>
+                        はじめ方ガイド
+                    </h2>
+                    <p class="text-gray-600">Core Firstを効果的にご利用いただくための推奨ステップ</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl font-bold text-blue-600">1</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">データのアップロード</h3>
+                        <p class="text-sm text-gray-600">
+                            配送データ・在庫データ・顧客マスタをアップロードして、AI分析の準備をしましょう
+                        </p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl font-bold text-green-600">2</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">AI分析の実行</h3>
+                        <p class="text-sm text-gray-600">
+                            積載効率改善・庫内作業改善・荷待ち時間短縮等のAI分析を実行して最適化案を取得
+                        </p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl font-bold text-purple-600">3</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">レポート・共有</h3>
+                        <p class="text-sm text-gray-600">
+                            分析結果をレポート化し、チームメンバーと共有して改善活動を推進しましょう
+                        </p>
+                    </div>
+                </div>
+
+                <div class="text-center mt-8">
+                    <button onclick="navigateTo('/data-mapping')" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105">
+                        <i class="fas fa-upload mr-2"></i>
+                        データアップロードから始める
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <script>
+            // ユーザーメニュー切り替え
+            function toggleUserMenu() {
+                const menu = document.getElementById('user-menu');
+                if (menu) {
+                    menu.classList.toggle('hidden');
+                }
+            }
+
+            // メニュー外クリックで閉じる
+            document.addEventListener('click', function(event) {
+                const menu = document.getElementById('user-menu');
+                const button = document.getElementById('user-menu-button');
+                
+                if (menu && button && !button.contains(event.target) && !menu.contains(event.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
+
+            // 画面遷移
+            function navigateTo(path) {
+                window.location.href = path;
+            }
+
+            // ログアウト
+            async function logout() {
+                try {
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    window.location.href = '/login';
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    window.location.href = '/login';
+                }
+            }
+
+            // 現在時刻更新
+            function updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleDateString('ja-JP', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const timeElement = document.getElementById('current-time');
+                if (timeElement) {
+                    timeElement.textContent = timeString;
+                }
+            }
+
+            // 初期化
+            document.addEventListener('DOMContentLoaded', function() {
+                updateTime();
+                setInterval(updateTime, 60000);
+            });
+        </script>
+    </body>
+    </html>
+  `);
+});
+
+// メインダッシュボード画面（総合評価・利用状況）
+app.get('/main-dashboard', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Core First - メインダッシュボード</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link href="/static/main-dashboard.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        <div class="flex h-screen overflow-hidden">
+            <!-- サイドバー -->
+            <aside id="sidebar" class="flex-shrink-0 w-80 bg-white transition-all duration-300 ease-in-out shadow-xl border-r border-gray-200">
+                <div class="flex flex-col h-full">
+                    <!-- ロゴ -->
+                    <div class="flex items-center h-16 bg-white border-b border-gray-200 px-4">
+                        <div class="flex items-center">
+                            <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                                 alt="Core First Logo" 
+                                 class="w-8 h-8 mr-3">
+                            <h3 class="text-lg font-bold text-blue-900">Core First</h3>
+                        </div>
+                    </div>
+
+                    <!-- ナビゲーションメニュー -->
+                    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                        <a href="/dashboard" class="nav-item">
+                            <i class="fas fa-home text-lg text-blue-600 nav-icon"></i>
+                            <span class="font-medium">トップページ</span>
+                        </a>
+                        
+                        <a href="/main-dashboard" class="nav-item active">
+                            <i class="fas fa-tachometer-alt text-lg text-blue-600 nav-icon"></i>
+                            <span class="font-medium">メインダッシュボード</span>
+                        </a>
+                        
+                        <a href="/ai-analysis" class="nav-item">
+                            <i class="fas fa-brain text-lg text-blue-600 nav-icon"></i>
+                            <span class="font-medium">AI分析・チャット</span>
+                        </a>
+                        
+                        <a href="/data-mapping" class="nav-item">
+                            <i class="fas fa-upload text-lg text-blue-600 nav-icon"></i>
+                            <span class="font-medium">データマッピング</span>
+                        </a>
+                        
+                        <a href="/data-integration" class="nav-item">
+                            <i class="fas fa-database text-lg text-blue-600 nav-icon"></i>
+                            <span class="font-medium">データ統合管理</span>
+                        </a>
+                        
+                        <a href="/report-management" class="nav-item">
+                            <i class="fas fa-file-alt text-lg text-blue-600 nav-icon"></i>
+                            <span class="font-medium">レポート管理</span>
+                        </a>
+                    </nav>
+
+                    <!-- フッター -->
+                    <div class="border-t border-gray-200 p-4">
+                        <a href="/dashboard" class="flex items-center text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-arrow-left mr-3"></i>
+                            <span>トップページに戻る</span>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- メインコンテンツ -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <!-- ヘッダー -->
+                <header class="bg-white shadow-sm border-b h-16 flex items-center justify-between px-6">
+                    <div class="flex items-center">
+                        <h1 class="text-xl font-semibold text-gray-900">メインダッシュボード</h1>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="text-sm text-gray-600">
+                            <span id="current-time"></span>
+                        </div>
+                        <div class="relative">
+                            <button onclick="toggleUserMenu()" id="user-menu-button" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-sm font-medium">C</span>
+                                </div>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            
+                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                                <a href="/admin-dashboard" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cogs mr-3 text-gray-400"></i>管理者ダッシュボード
+                                </a>
+                                <div class="border-t border-gray-100 my-1"></div>
+                                <a href="#" onclick="logout()" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt mr-3"></i>ログアウト
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- コンテンツエリア -->
+                <main class="flex-1 overflow-y-auto p-6">
+                    <!-- タブメニュー -->
+                    <div class="mb-6">
+                        <div class="border-b border-gray-200">
+                            <nav class="-mb-px flex space-x-8">
+                                <button onclick="showTab('overview')" id="tab-overview" class="dashboard-tab active">
+                                    <i class="fas fa-chart-pie mr-2"></i>
+                                    総合評価ダッシュボード
+                                </button>
+                                <button onclick="showTab('usage')" id="tab-usage" class="dashboard-tab">
+                                    <i class="fas fa-chart-bar mr-2"></i>
+                                    利用状況ダッシュボード
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <!-- 総合評価ダッシュボード -->
+                    <div id="overview-tab" class="tab-content">
+                        <!-- KPIカード -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-600">総合効率スコア</p>
+                                        <p class="text-3xl font-bold text-green-600">87.5%</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex items-center">
+                                    <i class="fas fa-arrow-up text-green-500 text-sm mr-1"></i>
+                                    <span class="text-sm text-green-600 font-medium">+2.3%</span>
+                                    <span class="text-sm text-gray-500 ml-2">前月比</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-600">コスト削減額</p>
+                                        <p class="text-3xl font-bold text-blue-600">¥2.3M</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-yen-sign text-blue-600 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="text-sm text-gray-500">今月実績</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-600">積載効率</p>
+                                        <p class="text-3xl font-bold text-orange-600">92.1%</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-truck text-orange-600 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="text-sm text-gray-500">平均積載率</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-600">AI活用度</p>
+                                        <p class="text-3xl font-bold text-purple-600">78.3%</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-brain text-purple-600 text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="text-sm text-gray-500">月間利用率</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- チャート -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">効率性トレンド</h3>
+                                <div class="h-80">
+                                    <canvas id="efficiencyChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">コスト分析</h3>
+                                <div class="h-80">
+                                    <canvas id="costChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI推奨アクション -->
+                        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-6">
+                                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                                AI推奨アクション
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="flex items-start p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                                    <i class="fas fa-exclamation-circle text-blue-600 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="font-medium text-blue-900">積載効率改善の機会</p>
+                                        <p class="text-sm text-blue-700 mt-1">ルートA-Bにおいて、積載率を15%向上できる可能性があります。詳細分析を実行してください。</p>
+                                        <button class="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium">詳細を確認 →</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-start p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                                    <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="font-medium text-green-900">庫内作業最適化完了</p>
+                                        <p class="text-sm text-green-700 mt-1">倉庫Cの作業効率が目標値に達しました。他の拠点への水平展開を検討してください。</p>
+                                        <button class="mt-2 text-sm text-green-600 hover:text-green-800 font-medium">レポートを作成 →</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 利用状況ダッシュボード -->
+                    <div id="usage-tab" class="tab-content hidden">
+                        <div class="bg-white rounded-lg shadow-sm p-8 border border-gray-200 text-center">
+                            <i class="fas fa-chart-bar text-4xl text-gray-400 mb-4"></i>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">利用状況ダッシュボード</h3>
+                            <p class="text-gray-600 mb-4">AI分析カテゴリ別・ユーザー別利用頻度、データアップロード状況の詳細分析機能を開発中です。</p>
+                            <div class="text-sm text-blue-600">近日公開予定</div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <script src="/static/main-dashboard.js"></script>
+    </body>
+    </html>
+  `);
+});
+
+// AI分析・チャット画面
+app.get('/ai-analysis', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AI分析・チャット - Core First</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link href="/static/ai-analysis.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        <div class="min-h-screen">
+            <!-- ヘッダー -->
+            <header class="main-header bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <a href="/dashboard" class="flex items-center text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            ダッシュボードに戻る
+                        </a>
+                        <div class="flex items-center">
+                            <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                                 alt="Core First Logo" 
+                                 class="w-8 h-8 mr-3">
+                            <h1 class="text-xl font-bold text-gray-900">AI分析・チャット</h1>
+                        </div>
+                    </div>
+
+                    <!-- ユーザープロフィール -->
+                    <div class="relative">
+                        <button id="profile-button" class="flex items-center space-x-3 bg-gray-100 rounded-lg px-3 py-2 hover:bg-gray-200 transition-colors">
+                            <img src="https://ui-avatars.com/api/?name=CLO+User&background=3b82f6&color=fff&size=32" 
+                                 alt="Profile" 
+                                 class="w-8 h-8 rounded-full">
+                            <span class="font-medium text-gray-700">CLOユーザー</span>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </button>
+
+                        <!-- プロフィールドロップダウン -->
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <div class="py-1">
+                                <a href="/admin-dashboard" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cog mr-2"></i>
+                                    管理者ダッシュボード
+                                </a>
+                                <hr class="my-1">
+                                <a href="/api/auth/logout" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>
+                                    ログアウト
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex">
+                <!-- サイドナビゲーション -->
+                <nav class="nav-container w-64 bg-slate-800 h-screen fixed">
+                    <div class="p-4">
+                        <div class="space-y-2">
+                            <a href="/dashboard" class="nav-item">
+                                <i class="fas fa-home"></i>
+                                <span>ホーム</span>
+                            </a>
+                            <a href="/main-dashboard" class="nav-item">
+                                <i class="fas fa-chart-line"></i>
+                                <span>メインダッシュボード</span>
+                            </a>
+                            <a href="/ai-analysis" class="nav-item active">
+                                <i class="fas fa-robot"></i>
+                                <span>AI分析・チャット</span>
+                            </a>
+                            <a href="/data-mapping" class="nav-item">
+                                <i class="fas fa-project-diagram"></i>
+                                <span>データマッピング</span>
+                            </a>
+                            <a href="/data-integration" class="nav-item">
+                                <i class="fas fa-database"></i>
+                                <span>データ統合管理</span>
+                            </a>
+                            <a href="/report-management" class="nav-item">
+                                <i class="fas fa-file-alt"></i>
+                                <span>レポート管理</span>
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- メインコンテンツ -->
+                <main class="flex-1 ml-64 p-6">
+                    <div class="max-w-7xl mx-auto">
+                        <!-- AI分析セクション -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                            <!-- データ分析パネル -->
+                            <div class="analysis-panel bg-white rounded-lg shadow-md">
+                                <div class="panel-header">
+                                    <h2 class="panel-title">
+                                        <i class="fas fa-chart-bar mr-2"></i>
+                                        データ分析
+                                    </h2>
+                                    <button id="refresh-analysis" class="btn-secondary">
+                                        <i class="fas fa-sync-alt"></i>
+                                        更新
+                                    </button>
+                                </div>
+                                <div class="panel-content">
+                                    <div id="analysis-charts">
+                                        <canvas id="cost-analysis-chart"></canvas>
+                                    </div>
+                                    <div class="analysis-insights mt-4">
+                                        <h3 class="insights-title">AI分析結果</h3>
+                                        <div id="analysis-results" class="insights-list">
+                                            <div class="insight-item">
+                                                <div class="insight-icon positive">
+                                                    <i class="fas fa-arrow-down"></i>
+                                                </div>
+                                                <div class="insight-content">
+                                                    <div class="insight-title">コスト削減の機会</div>
+                                                    <div class="insight-desc">配送ルートの最適化により15%のコスト削減が可能</div>
+                                                </div>
+                                            </div>
+                                            <div class="insight-item">
+                                                <div class="insight-icon warning">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                </div>
+                                                <div class="insight-content">
+                                                    <div class="insight-title">効率性の課題</div>
+                                                    <div class="insight-desc">配送時間のばらつきが業界平均を上回っています</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 予測分析パネル -->
+                            <div class="analysis-panel bg-white rounded-lg shadow-md">
+                                <div class="panel-header">
+                                    <h2 class="panel-title">
+                                        <i class="fas fa-crystal-ball mr-2"></i>
+                                        予測分析
+                                    </h2>
+                                    <select id="prediction-period" class="select-input">
+                                        <option value="1">1ヶ月</option>
+                                        <option value="3" selected>3ヶ月</option>
+                                        <option value="6">6ヶ月</option>
+                                    </select>
+                                </div>
+                                <div class="panel-content">
+                                    <div id="prediction-charts">
+                                        <canvas id="prediction-chart"></canvas>
+                                    </div>
+                                    <div class="prediction-summary mt-4">
+                                        <div class="summary-cards">
+                                            <div class="summary-card">
+                                                <div class="summary-value">¥1.2M</div>
+                                                <div class="summary-label">予測コスト</div>
+                                                <div class="summary-trend positive">-5.2%</div>
+                                            </div>
+                                            <div class="summary-card">
+                                                <div class="summary-value">92%</div>
+                                                <div class="summary-label">予測精度</div>
+                                                <div class="summary-trend positive">+2.1%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AIチャットセクション -->
+                        <div class="chat-container bg-white rounded-lg shadow-md">
+                            <div class="chat-header">
+                                <h2 class="chat-title">
+                                    <i class="fas fa-comments mr-2"></i>
+                                    AI アシスタント
+                                </h2>
+                                <div class="chat-status">
+                                    <div class="status-indicator online"></div>
+                                    <span>オンライン</span>
+                                </div>
+                            </div>
+                            
+                            <div class="chat-content">
+                                <div id="chat-messages" class="chat-messages">
+                                    <!-- 初期メッセージ -->
+                                    <div class="message assistant">
+                                        <div class="message-avatar">
+                                            <i class="fas fa-robot"></i>
+                                        </div>
+                                        <div class="message-content">
+                                            <div class="message-text">
+                                                こんにちは！物流データの分析やお悩みについて、お気軽にご質問ください。
+                                                以下のような質問にお答えできます：<br>
+                                                • コスト削減の提案<br>
+                                                • 配送効率の改善<br>
+                                                • データの解釈と分析<br>
+                                                • 予測分析の詳細
+                                            </div>
+                                            <div class="message-time">
+                                                ${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="chat-input-container">
+                                    <div class="quick-questions">
+                                        <button class="quick-btn" onclick="sendQuickQuestion('コスト削減の提案を教えてください')">
+                                            <i class="fas fa-dollar-sign mr-1"></i>
+                                            コスト削減
+                                        </button>
+                                        <button class="quick-btn" onclick="sendQuickQuestion('配送効率を改善する方法は？')">
+                                            <i class="fas fa-shipping-fast mr-1"></i>
+                                            効率改善
+                                        </button>
+                                        <button class="quick-btn" onclick="sendQuickQuestion('最新のデータ分析結果を見せてください')">
+                                            <i class="fas fa-chart-line mr-1"></i>
+                                            データ分析
+                                        </button>
+                                        <button class="quick-btn" onclick="sendQuickQuestion('リスク要因を教えてください')">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                                            リスク分析
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="chat-input-row">
+                                        <div class="chat-input-wrapper">
+                                            <input 
+                                                type="text" 
+                                                id="chat-input" 
+                                                placeholder="メッセージを入力してください..."
+                                                class="chat-input"
+                                            >
+                                            <button id="attach-btn" class="attach-btn">
+                                                <i class="fas fa-paperclip"></i>
+                                            </button>
+                                        </div>
+                                        <button id="send-btn" class="send-btn">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <script src="/static/ai-analysis.js"></script>
+    </body>
+    </html>
+  `);
+});
+
+// データ連携・マッピング画面
+app.get('/data-mapping', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>データ連携・マッピング - Core First</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <link href="/static/data-mapping.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        <div class="min-h-screen">
+            <!-- ヘッダー -->
+            <header class="main-header bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <a href="/dashboard" class="flex items-center text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            ダッシュボードに戻る
+                        </a>
+                        <div class="flex items-center">
+                            <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                                 alt="Core First Logo" 
+                                 class="w-8 h-8 mr-3">
+                            <h1 class="text-xl font-bold text-gray-900">データ連携・マッピング</h1>
+                        </div>
+                    </div>
+
+                    <!-- ユーザープロフィール -->
+                    <div class="relative">
+                        <button id="profile-button" class="flex items-center space-x-3 bg-gray-100 rounded-lg px-3 py-2 hover:bg-gray-200 transition-colors">
+                            <img src="https://ui-avatars.com/api/?name=CLO+User&background=3b82f6&color=fff&size=32" 
+                                 alt="Profile" 
+                                 class="w-8 h-8 rounded-full">
+                            <span class="font-medium text-gray-700">CLOユーザー</span>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </button>
+
+                        <!-- プロフィールドロップダウン -->
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <div class="py-1">
+                                <a href="/admin-dashboard" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cog mr-2"></i>
+                                    管理者ダッシュボード
+                                </a>
+                                <hr class="my-1">
+                                <a href="/api/auth/logout" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>
+                                    ログアウト
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex">
+                <!-- サイドナビゲーション -->
+                <nav class="nav-container w-64 bg-slate-800 h-screen fixed">
+                    <div class="p-4">
+                        <div class="space-y-2">
+                            <a href="/dashboard" class="nav-item">
+                                <i class="fas fa-home"></i>
+                                <span>ホーム</span>
+                            </a>
+                            <a href="/main-dashboard" class="nav-item">
+                                <i class="fas fa-chart-line"></i>
+                                <span>メインダッシュボード</span>
+                            </a>
+                            <a href="/ai-analysis" class="nav-item">
+                                <i class="fas fa-robot"></i>
+                                <span>AI分析・チャット</span>
+                            </a>
+                            <a href="/data-mapping" class="nav-item active">
+                                <i class="fas fa-project-diagram"></i>
+                                <span>データマッピング</span>
+                            </a>
+                            <a href="/data-integration" class="nav-item">
+                                <i class="fas fa-database"></i>
+                                <span>データ統合管理</span>
+                            </a>
+                            <a href="/report-management" class="nav-item">
+                                <i class="fas fa-file-alt"></i>
+                                <span>レポート管理</span>
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- メインコンテンツ -->
+                <main class="flex-1 ml-64 p-6">
+                    <div class="max-w-7xl mx-auto">
+                        
+                        <!-- コントロールパネル -->
+                        <div class="control-panel bg-white rounded-lg shadow-md mb-6">
+                            <div class="panel-header">
+                                <h2 class="panel-title">
+                                    <i class="fas fa-cogs mr-2"></i>
+                                    データソース管理
+                                </h2>
+                                <div class="control-actions">
+                                    <button id="add-source-btn" class="btn-primary">
+                                        <i class="fas fa-plus mr-2"></i>
+                                        新しいソース追加
+                                    </button>
+                                    <button id="refresh-mapping" class="btn-secondary">
+                                        <i class="fas fa-sync-alt mr-2"></i>
+                                        更新
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="panel-content">
+                                <!-- データソース一覧 -->
+                                <div class="sources-grid">
+                                    <div class="source-card active" data-source="erp">
+                                        <div class="source-icon">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <div class="source-info">
+                                            <div class="source-name">ERPシステム</div>
+                                            <div class="source-status connected">接続済み</div>
+                                            <div class="source-desc">在庫・受注データ</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="source-card active" data-source="wms">
+                                        <div class="source-icon">
+                                            <i class="fas fa-warehouse"></i>
+                                        </div>
+                                        <div class="source-info">
+                                            <div class="source-name">WMSシステム</div>
+                                            <div class="source-status connected">接続済み</div>
+                                            <div class="source-desc">倉庫管理データ</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="source-card active" data-source="tms">
+                                        <div class="source-icon">
+                                            <i class="fas fa-truck"></i>
+                                        </div>
+                                        <div class="source-info">
+                                            <div class="source-name">TMSシステム</div>
+                                            <div class="source-status connected">接続済み</div>
+                                            <div class="source-desc">配送管理データ</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="source-card" data-source="csv">
+                                        <div class="source-icon">
+                                            <i class="fas fa-file-csv"></i>
+                                        </div>
+                                        <div class="source-info">
+                                            <div class="source-name">CSVファイル</div>
+                                            <div class="source-status disconnected">未接続</div>
+                                            <div class="source-desc">外部データファイル</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="source-card" data-source="api">
+                                        <div class="source-icon">
+                                            <i class="fas fa-plug"></i>
+                                        </div>
+                                        <div class="source-info">
+                                            <div class="source-name">外部API</div>
+                                            <div class="source-status disconnected">未接続</div>
+                                            <div class="source-desc">サードパーティAPI</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- マッピング設定エリア -->
+                        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            
+                            <!-- フィールドマッピング -->
+                            <div class="mapping-panel bg-white rounded-lg shadow-md">
+                                <div class="panel-header">
+                                    <h3 class="panel-title">
+                                        <i class="fas fa-arrows-alt-h mr-2"></i>
+                                        フィールドマッピング
+                                    </h3>
+                                    <select id="source-selector" class="select-input">
+                                        <option value="erp">ERPシステム</option>
+                                        <option value="wms">WMSシステム</option>
+                                        <option value="tms">TMSシステム</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="panel-content">
+                                    <div id="field-mapping-container">
+                                        <!-- フィールドマッピングが動的に生成される -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- データ変換ルール -->
+                            <div class="transformation-panel bg-white rounded-lg shadow-md">
+                                <div class="panel-header">
+                                    <h3 class="panel-title">
+                                        <i class="fas fa-magic mr-2"></i>
+                                        データ変換ルール
+                                    </h3>
+                                    <button id="add-rule-btn" class="btn-secondary">
+                                        <i class="fas fa-plus mr-1"></i>
+                                        ルール追加
+                                    </button>
+                                </div>
+                                
+                                <div class="panel-content">
+                                    <div id="transformation-rules">
+                                        <!-- 変換ルールが動的に生成される -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- データプレビュー -->
+                        <div class="preview-panel bg-white rounded-lg shadow-md mt-6">
+                            <div class="panel-header">
+                                <h3 class="panel-title">
+                                    <i class="fas fa-eye mr-2"></i>
+                                    データプレビュー
+                                </h3>
+                                <div class="preview-controls">
+                                    <button id="preview-btn" class="btn-primary">
+                                        <i class="fas fa-play mr-2"></i>
+                                        プレビュー実行
+                                    </button>
+                                    <button id="validate-btn" class="btn-secondary">
+                                        <i class="fas fa-check-circle mr-2"></i>
+                                        検証
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="panel-content">
+                                <div class="preview-tabs">
+                                    <button class="preview-tab active" data-tab="source">
+                                        ソースデータ
+                                    </button>
+                                    <button class="preview-tab" data-tab="transformed">
+                                        変換後データ
+                                    </button>
+                                    <button class="preview-tab" data-tab="errors">
+                                        エラー・警告
+                                    </button>
+                                </div>
+                                
+                                <div class="preview-content">
+                                    <div id="source-preview" class="preview-table-container active">
+                                        <table id="source-data-table" class="preview-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>注文ID</th>
+                                                    <th>商品コード</th>
+                                                    <th>数量</th>
+                                                    <th>配送先</th>
+                                                    <th>ステータス</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>ORD-2024-001</td>
+                                                    <td>PROD-A001</td>
+                                                    <td>50</td>
+                                                    <td>東京都渋谷区</td>
+                                                    <td>処理中</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>ORD-2024-002</td>
+                                                    <td>PROD-B002</td>
+                                                    <td>25</td>
+                                                    <td>大阪府大阪市</td>
+                                                    <td>配送中</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <div id="transformed-preview" class="preview-table-container">
+                                        <div class="loading-message">
+                                            変換を実行してデータを表示
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="errors-preview" class="preview-table-container">
+                                        <div class="error-list">
+                                            <!-- エラー・警告が表示される -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- マッピング履歴 -->
+                        <div class="history-panel bg-white rounded-lg shadow-md mt-6">
+                            <div class="panel-header">
+                                <h3 class="panel-title">
+                                    <i class="fas fa-history mr-2"></i>
+                                    マッピング履歴
+                                </h3>
+                                <div class="history-controls">
+                                    <select class="select-input">
+                                        <option>過去7日</option>
+                                        <option>過去30日</option>
+                                        <option>過去90日</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="panel-content">
+                                <div class="history-list">
+                                    <div class="history-item">
+                                        <div class="history-icon success">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <div class="history-info">
+                                            <div class="history-title">ERPシステム - 注文データ同期</div>
+                                            <div class="history-desc">1,234件のレコードを正常に処理</div>
+                                            <div class="history-time">2024年1月15日 14:30</div>
+                                        </div>
+                                        <div class="history-status success">成功</div>
+                                    </div>
+                                    
+                                    <div class="history-item">
+                                        <div class="history-icon warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </div>
+                                        <div class="history-info">
+                                            <div class="history-title">WMSシステム - 在庫データ同期</div>
+                                            <div class="history-desc">852件処理、12件の警告あり</div>
+                                            <div class="history-time">2024年1月15日 13:15</div>
+                                        </div>
+                                        <div class="history-status warning">警告</div>
+                                    </div>
+                                    
+                                    <div class="history-item">
+                                        <div class="history-icon error">
+                                            <i class="fas fa-times"></i>
+                                        </div>
+                                        <div class="history-info">
+                                            <div class="history-title">TMSシステム - 配送データ同期</div>
+                                            <div class="history-desc">接続エラーにより同期失敗</div>
+                                            <div class="history-time">2024年1月15日 12:00</div>
+                                        </div>
+                                        <div class="history-status error">失敗</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <script src="/static/data-mapping.js"></script>
+    </body>
+    </html>
+  `);
+});
+
+// データ連携・統合管理画面
+app.get('/data-integration', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>データ連携・統合管理 - Core First</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link href="/static/data-integration.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        <div class="min-h-screen">
+            <!-- ヘッダー -->
+            <header class="main-header bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <a href="/dashboard" class="flex items-center text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            ダッシュボードに戻る
+                        </a>
+                        <div class="flex items-center">
+                            <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                                 alt="Core First Logo" 
+                                 class="w-8 h-8 mr-3">
+                            <h1 class="text-xl font-bold text-gray-900">データ連携・統合管理</h1>
+                        </div>
+                    </div>
+
+                    <!-- ユーザープロフィール -->
+                    <div class="relative">
+                        <button id="profile-button" class="flex items-center space-x-3 bg-gray-100 rounded-lg px-3 py-2 hover:bg-gray-200 transition-colors">
+                            <img src="https://ui-avatars.com/api/?name=CLO+User&background=3b82f6&color=fff&size=32" 
+                                 alt="Profile" 
+                                 class="w-8 h-8 rounded-full">
+                            <span class="font-medium text-gray-700">CLOユーザー</span>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </button>
+
+                        <!-- プロフィールドロップダウン -->
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <div class="py-1">
+                                <a href="/admin-dashboard" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cog mr-2"></i>
+                                    管理者ダッシュボード
+                                </a>
+                                <hr class="my-1">
+                                <a href="/api/auth/logout" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>
+                                    ログアウト
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex">
+                <!-- サイドナビゲーション -->
+                <nav class="nav-container w-64 bg-slate-800 h-screen fixed">
+                    <div class="p-4">
+                        <div class="space-y-2">
+                            <a href="/dashboard" class="nav-item">
+                                <i class="fas fa-home"></i>
+                                <span>ホーム</span>
+                            </a>
+                            <a href="/main-dashboard" class="nav-item">
+                                <i class="fas fa-chart-line"></i>
+                                <span>メインダッシュボード</span>
+                            </a>
+                            <a href="/ai-analysis" class="nav-item">
+                                <i class="fas fa-robot"></i>
+                                <span>AI分析・チャット</span>
+                            </a>
+                            <a href="/data-mapping" class="nav-item">
+                                <i class="fas fa-project-diagram"></i>
+                                <span>データマッピング</span>
+                            </a>
+                            <a href="/data-integration" class="nav-item active">
+                                <i class="fas fa-database"></i>
+                                <span>データ統合管理</span>
+                            </a>
+                            <a href="/report-management" class="nav-item">
+                                <i class="fas fa-file-alt"></i>
+                                <span>レポート管理</span>
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- メインコンテンツ -->
+                <main class="flex-1 ml-64 p-6">
+                    <div class="max-w-7xl mx-auto">
+                        
+                        <!-- 統計概要 -->
+                        <div class="stats-grid mb-6">
+                            <div class="stat-card">
+                                <div class="stat-icon blue">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value">15</div>
+                                    <div class="stat-label">データソース</div>
+                                    <div class="stat-change positive">+2 今月</div>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon green">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value">1.2M</div>
+                                    <div class="stat-label">同期レコード</div>
+                                    <div class="stat-change positive">+8.5%</div>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon purple">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value">5.2s</div>
+                                    <div class="stat-label">平均同期時間</div>
+                                    <div class="stat-change positive">-1.2s</div>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon orange">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value">3</div>
+                                    <div class="stat-label">エラー</div>
+                                    <div class="stat-change negative">+1</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- メインコンテンツエリア -->
+                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                            
+                            <!-- データフロー管理 -->
+                            <div class="xl:col-span-2">
+                                <div class="dataflow-panel bg-white rounded-lg shadow-md">
+                                    <div class="panel-header">
+                                        <h2 class="panel-title">
+                                            <i class="fas fa-project-diagram mr-2"></i>
+                                            データフロー管理
+                                        </h2>
+                                        <div class="flow-controls">
+                                            <button id="add-flow-btn" class="btn-primary">
+                                                <i class="fas fa-plus mr-2"></i>
+                                                フロー追加
+                                            </button>
+                                            <button id="refresh-flows" class="btn-secondary">
+                                                <i class="fas fa-sync-alt mr-2"></i>
+                                                更新
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="panel-content">
+                                        <div id="dataflow-canvas" class="dataflow-canvas">
+                                            <!-- データフローが描画される -->
+                                        </div>
+                                        
+                                        <!-- フロー一覧 -->
+                                        <div class="flows-list">
+                                            <div class="flow-item active" data-flow="erp-wms">
+                                                <div class="flow-status running"></div>
+                                                <div class="flow-info">
+                                                    <div class="flow-name">ERP → WMS 同期</div>
+                                                    <div class="flow-desc">注文データの自動同期</div>
+                                                    <div class="flow-schedule">毎時実行</div>
+                                                </div>
+                                                <div class="flow-actions">
+                                                    <button class="action-btn" onclick="toggleFlow('erp-wms')">
+                                                        <i class="fas fa-pause"></i>
+                                                    </button>
+                                                    <button class="action-btn" onclick="editFlow('erp-wms')">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="flow-item" data-flow="wms-tms">
+                                                <div class="flow-status stopped"></div>
+                                                <div class="flow-info">
+                                                    <div class="flow-name">WMS → TMS 同期</div>
+                                                    <div class="flow-desc">出荷指示データの連携</div>
+                                                    <div class="flow-schedule">手動実行</div>
+                                                </div>
+                                                <div class="flow-actions">
+                                                    <button class="action-btn" onclick="toggleFlow('wms-tms')">
+                                                        <i class="fas fa-play"></i>
+                                                    </button>
+                                                    <button class="action-btn" onclick="editFlow('wms-tms')">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="flow-item" data-flow="tms-report">
+                                                <div class="flow-status error"></div>
+                                                <div class="flow-info">
+                                                    <div class="flow-name">TMS → レポート生成</div>
+                                                    <div class="flow-desc">配送実績レポート作成</div>
+                                                    <div class="flow-schedule">日次実行</div>
+                                                </div>
+                                                <div class="flow-actions">
+                                                    <button class="action-btn" onclick="toggleFlow('tms-report')">
+                                                        <i class="fas fa-play"></i>
+                                                    </button>
+                                                    <button class="action-btn" onclick="editFlow('tms-report')">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 監視・アラート -->
+                            <div class="monitoring-panel bg-white rounded-lg shadow-md">
+                                <div class="panel-header">
+                                    <h3 class="panel-title">
+                                        <i class="fas fa-heartbeat mr-2"></i>
+                                        リアルタイム監視
+                                    </h3>
+                                </div>
+                                
+                                <div class="panel-content">
+                                    <!-- システム状態 -->
+                                    <div class="system-status mb-6">
+                                        <h4 class="status-title">システム状態</h4>
+                                        <div class="status-indicators">
+                                            <div class="status-item">
+                                                <div class="status-dot online"></div>
+                                                <span>ERPシステム</span>
+                                            </div>
+                                            <div class="status-item">
+                                                <div class="status-dot online"></div>
+                                                <span>WMSシステム</span>
+                                            </div>
+                                            <div class="status-item">
+                                                <div class="status-dot offline"></div>
+                                                <span>TMSシステム</span>
+                                            </div>
+                                            <div class="status-item">
+                                                <div class="status-dot warning"></div>
+                                                <span>外部API</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- アクティブアラート -->
+                                    <div class="alerts-section">
+                                        <h4 class="alerts-title">アクティブアラート</h4>
+                                        <div class="alerts-list">
+                                            <div class="alert-item error">
+                                                <div class="alert-icon">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                </div>
+                                                <div class="alert-content">
+                                                    <div class="alert-title">TMS接続エラー</div>
+                                                    <div class="alert-desc">タイムアウトにより接続失敗</div>
+                                                    <div class="alert-time">3分前</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="alert-item warning">
+                                                <div class="alert-icon">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                </div>
+                                                <div class="alert-content">
+                                                    <div class="alert-title">データ遅延</div>
+                                                    <div class="alert-desc">同期が5分遅れています</div>
+                                                    <div class="alert-time">8分前</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="alert-item info">
+                                                <div class="alert-icon">
+                                                    <i class="fas fa-info-circle"></i>
+                                                </div>
+                                                <div class="alert-content">
+                                                    <div class="alert-title">定期メンテナンス</div>
+                                                    <div class="alert-desc">明日2:00-4:00予定</div>
+                                                    <div class="alert-time">1時間前</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- パフォーマンス -->
+                                    <div class="performance-section">
+                                        <h4 class="performance-title">パフォーマンス</h4>
+                                        <div class="performance-chart">
+                                            <canvas id="performance-chart" width="100" height="60"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 同期履歴・ログ -->
+                        <div class="history-panel bg-white rounded-lg shadow-md mt-6">
+                            <div class="panel-header">
+                                <h3 class="panel-title">
+                                    <i class="fas fa-history mr-2"></i>
+                                    同期履歴・ログ
+                                </h3>
+                                <div class="history-controls">
+                                    <select id="log-filter" class="select-input">
+                                        <option value="all">全て</option>
+                                        <option value="success">成功</option>
+                                        <option value="error">エラー</option>
+                                        <option value="warning">警告</option>
+                                    </select>
+                                    <select id="time-range" class="select-input">
+                                        <option value="1h">過去1時間</option>
+                                        <option value="1d">過去24時間</option>
+                                        <option value="1w">過去1週間</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="panel-content">
+                                <div class="logs-table-container">
+                                    <table id="logs-table" class="logs-table">
+                                        <thead>
+                                            <tr>
+                                                <th>時刻</th>
+                                                <th>フロー名</th>
+                                                <th>ステータス</th>
+                                                <th>レコード数</th>
+                                                <th>実行時間</th>
+                                                <th>詳細</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>15:30:12</td>
+                                                <td>ERP → WMS</td>
+                                                <td><span class="status-badge success">成功</span></td>
+                                                <td>1,234</td>
+                                                <td>4.2s</td>
+                                                <td><button class="details-btn" onclick="showLogDetails(1)">詳細</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>15:15:08</td>
+                                                <td>WMS → TMS</td>
+                                                <td><span class="status-badge error">エラー</span></td>
+                                                <td>0</td>
+                                                <td>-</td>
+                                                <td><button class="details-btn" onclick="showLogDetails(2)">詳細</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>15:00:05</td>
+                                                <td>ERP → WMS</td>
+                                                <td><span class="status-badge warning">警告</span></td>
+                                                <td>987</td>
+                                                <td>6.8s</td>
+                                                <td><button class="details-btn" onclick="showLogDetails(3)">詳細</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- データ品質ダッシュボード -->
+                        <div class="quality-panel bg-white rounded-lg shadow-md mt-6">
+                            <div class="panel-header">
+                                <h3 class="panel-title">
+                                    <i class="fas fa-chart-bar mr-2"></i>
+                                    データ品質ダッシュボード
+                                </h3>
+                            </div>
+                            
+                            <div class="panel-content">
+                                <div class="quality-metrics">
+                                    <div class="quality-card">
+                                        <div class="quality-header">
+                                            <h4>データ完整性</h4>
+                                            <div class="quality-score good">98.5%</div>
+                                        </div>
+                                        <div class="quality-chart">
+                                            <canvas id="completeness-chart" width="100" height="60"></canvas>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="quality-card">
+                                        <div class="quality-header">
+                                            <h4>データ正確性</h4>
+                                            <div class="quality-score average">87.2%</div>
+                                        </div>
+                                        <div class="quality-chart">
+                                            <canvas id="accuracy-chart" width="100" height="60"></canvas>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="quality-card">
+                                        <div class="quality-header">
+                                            <h4>データ一貫性</h4>
+                                            <div class="quality-score poor">76.8%</div>
+                                        </div>
+                                        <div class="quality-chart">
+                                            <canvas id="consistency-chart" width="100" height="60"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <script src="/static/data-integration.js"></script>
+    </body>
+    </html>
+  `);
+});
+
+// レポート管理画面
+app.get('/report-management', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>レポート管理 - Core First</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link href="/static/report-management.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-50">
+        <div class="min-h-screen">
+            <!-- ヘッダー -->
+            <header class="main-header bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <a href="/dashboard" class="flex items-center text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            ダッシュボードに戻る
+                        </a>
+                        <div class="flex items-center">
+                            <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                                 alt="Core First Logo" 
+                                 class="w-8 h-8 mr-3">
+                            <h1 class="text-xl font-bold text-gray-900">レポート管理</h1>
+                        </div>
+                    </div>
+
+                    <!-- ユーザープロフィール -->
+                    <div class="relative">
+                        <button id="profile-button" class="flex items-center space-x-3 bg-gray-100 rounded-lg px-3 py-2 hover:bg-gray-200 transition-colors">
+                            <img src="https://ui-avatars.com/api/?name=CLO+User&background=3b82f6&color=fff&size=32" 
+                                 alt="Profile" 
+                                 class="w-8 h-8 rounded-full">
+                            <span class="font-medium text-gray-700">CLOユーザー</span>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </button>
+
+                        <!-- プロフィールドロップダウン -->
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <div class="py-1">
+                                <a href="/admin-dashboard" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cog mr-2"></i>
+                                    管理者ダッシュボード
+                                </a>
+                                <hr class="my-1">
+                                <a href="/api/auth/logout" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>
+                                    ログアウト
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex">
+                <!-- サイドナビゲーション -->
+                <nav class="nav-container w-64 bg-slate-800 h-screen fixed">
+                    <div class="p-4">
+                        <div class="space-y-2">
+                            <a href="/dashboard" class="nav-item">
+                                <i class="fas fa-home"></i>
+                                <span>ホーム</span>
+                            </a>
+                            <a href="/main-dashboard" class="nav-item">
+                                <i class="fas fa-chart-line"></i>
+                                <span>メインダッシュボード</span>
+                            </a>
+                            <a href="/ai-analysis" class="nav-item">
+                                <i class="fas fa-robot"></i>
+                                <span>AI分析・チャット</span>
+                            </a>
+                            <a href="/data-mapping" class="nav-item">
+                                <i class="fas fa-project-diagram"></i>
+                                <span>データマッピング</span>
+                            </a>
+                            <a href="/data-integration" class="nav-item">
+                                <i class="fas fa-database"></i>
+                                <span>データ統合管理</span>
+                            </a>
+                            <a href="/report-management" class="nav-item active">
+                                <i class="fas fa-file-alt"></i>
+                                <span>レポート管理</span>
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- メインコンテンツ -->
+                <main class="flex-1 ml-64 p-6">
+                    <div class="max-w-7xl mx-auto">
+                        
+                        <!-- レポート作成・管理パネル -->
+                        <div class="control-panel bg-white rounded-lg shadow-md mb-6">
+                            <div class="panel-header">
+                                <h2 class="panel-title">
+                                    <i class="fas fa-chart-bar mr-2"></i>
+                                    レポート作成・管理
+                                </h2>
+                                <div class="control-actions">
+                                    <button id="create-report-btn" class="btn-primary">
+                                        <i class="fas fa-plus mr-2"></i>
+                                        新規レポート作成
+                                    </button>
+                                    <button id="template-btn" class="btn-secondary">
+                                        <i class="fas fa-layer-group mr-2"></i>
+                                        テンプレート
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                            
+                            <!-- レポートビルダー -->
+                            <div class="xl:col-span-2">
+                                <div class="report-builder bg-white rounded-lg shadow-md">
+                                    <div class="panel-header">
+                                        <h3 class="panel-title">
+                                            <i class="fas fa-tools mr-2"></i>
+                                            レポートビルダー
+                                        </h3>
+                                        <div class="builder-actions">
+                                            <button id="preview-report" class="btn-secondary">
+                                                <i class="fas fa-eye mr-2"></i>
+                                                プレビュー
+                                            </button>
+                                            <button id="save-report" class="btn-primary">
+                                                <i class="fas fa-save mr-2"></i>
+                                                保存
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="panel-content">
+                                        <!-- レポート設定 -->
+                                        <div class="report-config mb-6">
+                                            <div class="config-row">
+                                                <div class="config-field">
+                                                    <label class="config-label">レポート名</label>
+                                                    <input type="text" id="report-name" class="config-input" placeholder="レポート名を入力">
+                                                </div>
+                                                <div class="config-field">
+                                                    <label class="config-label">カテゴリー</label>
+                                                    <select id="report-category" class="config-select">
+                                                        <option value="logistics">物流分析</option>
+                                                        <option value="cost">コスト分析</option>
+                                                        <option value="performance">パフォーマンス</option>
+                                                        <option value="custom">カスタム</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="config-row">
+                                                <div class="config-field">
+                                                    <label class="config-label">データソース</label>
+                                                    <select id="data-source" class="config-select">
+                                                        <option value="all">全データソース</option>
+                                                        <option value="erp">ERPシステム</option>
+                                                        <option value="wms">WMSシステム</option>
+                                                        <option value="tms">TMSシステム</option>
+                                                    </select>
+                                                </div>
+                                                <div class="config-field">
+                                                    <label class="config-label">期間設定</label>
+                                                    <select id="date-range" class="config-select">
+                                                        <option value="last7days">過去7日</option>
+                                                        <option value="last30days">過去30日</option>
+                                                        <option value="last90days">過去90日</option>
+                                                        <option value="custom">カスタム</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- チャート設定 -->
+                                        <div class="chart-config mb-6">
+                                            <h4 class="config-section-title">
+                                                <i class="fas fa-chart-pie mr-2"></i>
+                                                チャート設定
+                                            </h4>
+                                            <div class="chart-types">
+                                                <div class="chart-type-item active" data-type="line">
+                                                    <i class="fas fa-chart-line"></i>
+                                                    <span>折れ線グラフ</span>
+                                                </div>
+                                                <div class="chart-type-item" data-type="bar">
+                                                    <i class="fas fa-chart-bar"></i>
+                                                    <span>棒グラフ</span>
+                                                </div>
+                                                <div class="chart-type-item" data-type="pie">
+                                                    <i class="fas fa-chart-pie"></i>
+                                                    <span>円グラフ</span>
+                                                </div>
+                                                <div class="chart-type-item" data-type="table">
+                                                    <i class="fas fa-table"></i>
+                                                    <span>テーブル</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- データフィールド選択 -->
+                                        <div class="field-selection">
+                                            <h4 class="config-section-title">
+                                                <i class="fas fa-database mr-2"></i>
+                                                データフィールド選択
+                                            </h4>
+                                            <div class="fields-grid">
+                                                <div class="field-item" data-field="cost">
+                                                    <input type="checkbox" id="field-cost" checked>
+                                                    <label for="field-cost">総コスト</label>
+                                                </div>
+                                                <div class="field-item" data-field="orders">
+                                                    <input type="checkbox" id="field-orders" checked>
+                                                    <label for="field-orders">注文数</label>
+                                                </div>
+                                                <div class="field-item" data-field="delivery">
+                                                    <input type="checkbox" id="field-delivery">
+                                                    <label for="field-delivery">配送時間</label>
+                                                </div>
+                                                <div class="field-item" data-field="efficiency">
+                                                    <input type="checkbox" id="field-efficiency">
+                                                    <label for="field-efficiency">効率性</label>
+                                                </div>
+                                                <div class="field-item" data-field="quality">
+                                                    <input type="checkbox" id="field-quality">
+                                                    <label for="field-quality">品質スコア</label>
+                                                </div>
+                                                <div class="field-item" data-field="satisfaction">
+                                                    <input type="checkbox" id="field-satisfaction">
+                                                    <label for="field-satisfaction">顧客満足度</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- レポート一覧・管理 -->
+                            <div class="reports-list bg-white rounded-lg shadow-md">
+                                <div class="panel-header">
+                                    <h3 class="panel-title">
+                                        <i class="fas fa-folder-open mr-2"></i>
+                                        保存済みレポート
+                                    </h3>
+                                </div>
+                                
+                                <div class="panel-content">
+                                    <div class="reports-filter mb-4">
+                                        <select id="category-filter" class="filter-select">
+                                            <option value="all">全カテゴリー</option>
+                                            <option value="logistics">物流分析</option>
+                                            <option value="cost">コスト分析</option>
+                                            <option value="performance">パフォーマンス</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div id="reports-list" class="reports-container">
+                                        <!-- レポート一覧が動的に生成される -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- レポートプレビュー -->
+                        <div class="preview-section bg-white rounded-lg shadow-md mt-6">
+                            <div class="panel-header">
+                                <h3 class="panel-title">
+                                    <i class="fas fa-eye mr-2"></i>
+                                    レポートプレビュー
+                                </h3>
+                                <div class="preview-actions">
+                                    <button id="export-pdf" class="btn-secondary">
+                                        <i class="fas fa-file-pdf mr-2"></i>
+                                        PDF出力
+                                    </button>
+                                    <button id="export-excel" class="btn-secondary">
+                                        <i class="fas fa-file-excel mr-2"></i>
+                                        Excel出力
+                                    </button>
+                                    <button id="share-report" class="btn-primary">
+                                        <i class="fas fa-share mr-2"></i>
+                                        共有
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="panel-content">
+                                <div id="report-preview" class="report-preview-container">
+                                    <!-- プレビュー用チャート -->
+                                    <div class="preview-chart-container">
+                                        <canvas id="preview-chart" width="100" height="400"></canvas>
+                                    </div>
+                                    
+                                    <!-- プレビュー用テーブル -->
+                                    <div class="preview-table-container mt-6">
+                                        <table id="preview-table" class="preview-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>日付</th>
+                                                    <th>総コスト</th>
+                                                    <th>注文数</th>
+                                                    <th>効率性(%)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>2024-01-15</td>
+                                                    <td>¥125,000</td>
+                                                    <td>45</td>
+                                                    <td>87.5%</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>2024-01-14</td>
+                                                    <td>¥130,000</td>
+                                                    <td>52</td>
+                                                    <td>85.2%</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>2024-01-13</td>
+                                                    <td>¥118,000</td>
+                                                    <td>38</td>
+                                                    <td>89.1%</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 自動レポート設定 -->
+                        <div class="automation-panel bg-white rounded-lg shadow-md mt-6">
+                            <div class="panel-header">
+                                <h3 class="panel-title">
+                                    <i class="fas fa-robot mr-2"></i>
+                                    自動レポート設定
+                                </h3>
+                            </div>
+                            
+                            <div class="panel-content">
+                                <div class="automation-list">
+                                    <div class="automation-item">
+                                        <div class="automation-info">
+                                            <div class="automation-name">日次コストレポート</div>
+                                            <div class="automation-desc">毎日9:00に前日のコスト分析レポートを自動生成</div>
+                                            <div class="automation-schedule">
+                                                <i class="fas fa-clock mr-1"></i>
+                                                毎日 09:00
+                                            </div>
+                                        </div>
+                                        <div class="automation-status">
+                                            <div class="status-indicator active"></div>
+                                            <span class="status-text">アクティブ</span>
+                                        </div>
+                                        <div class="automation-actions">
+                                            <button class="action-btn edit" onclick="editAutomation(1)">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="action-btn toggle" onclick="toggleAutomation(1)">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="automation-item">
+                                        <div class="automation-info">
+                                            <div class="automation-name">週次パフォーマンスレポート</div>
+                                            <div class="automation-desc">毎週月曜日に前週のパフォーマンス分析を自動生成</div>
+                                            <div class="automation-schedule">
+                                                <i class="fas fa-clock mr-1"></i>
+                                                毎週月曜日 10:00
+                                            </div>
+                                        </div>
+                                        <div class="automation-status">
+                                            <div class="status-indicator inactive"></div>
+                                            <span class="status-text">停止中</span>
+                                        </div>
+                                        <div class="automation-actions">
+                                            <button class="action-btn edit" onclick="editAutomation(2)">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="action-btn toggle" onclick="toggleAutomation(2)">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="add-automation-section mt-4">
+                                    <button id="add-automation-btn" class="btn-outline">
+                                        <i class="fas fa-plus mr-2"></i>
+                                        新しい自動レポートを追加
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <script src="/static/report-management.js"></script>
     </body>
     </html>
   `);
