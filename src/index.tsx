@@ -534,7 +534,7 @@ app.get('/admin', (c) => {
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     </head>
-    <body class="bg-gray-100">
+    <body class="bg-gradient-to-br from-blue-50 to-indigo-100">
         <div id="admin-app" class="min-h-screen">
             <!-- 認証チェック中のローディング -->
             <div id="loading" class="flex items-center justify-center min-h-screen">
