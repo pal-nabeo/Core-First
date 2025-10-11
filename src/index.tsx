@@ -117,7 +117,7 @@ app.get('/signup', (c) => {
             <!-- ロゴとタイトル -->
             <div class="text-center mb-8">
                 <div class="flex flex-col items-center justify-center mb-4">
-                    <img src="/static/logos/corefirst-logo-new.png" alt="Core First" class="h-12 mb-3">
+                    <img src="/static/logos/corefirst-logo-complete.png" alt="Core First" class="h-8 mb-4">
                     <h1 class="text-xl font-bold text-gray-900">新規アカウント登録</h1>
                 </div>
                 <p class="text-gray-600 text-sm">統合管理システムにご登録ください</p>
@@ -370,7 +370,7 @@ app.get('/login', (c) => {
             <!-- ロゴとタイトル -->
             <div class="text-center mb-8">
                 <div class="flex flex-col items-center justify-center mb-4">
-                    <img src="/static/logos/corefirst-logo-new.png" alt="Core First" class="h-16 mb-3">
+                    <img src="/static/logos/corefirst-logo-complete.png" alt="Core First" class="h-10 mb-4">
                     <p class="text-gray-600 text-sm">統合管理システム</p>
                 </div>
                 ${tenantSubdomain && tenantSubdomain !== 'localhost' ? 
@@ -575,7 +575,7 @@ app.get('/dashboard', (c) => {
                 <div class="flex flex-col h-full">
                     <!-- ロゴ -->
                     <div class="flex items-center justify-center h-16 bg-white border-b border-gray-200 px-4">
-                        <img src="/static/logos/corefirst-logo-new.png" alt="Core First" class="h-8" id="sidebar-logo">
+                        <img src="/static/logos/corefirst-logo-complete.png" alt="Core First" class="h-6" id="sidebar-logo">
                     </div>
 
                     <!-- ナビゲーションメニュー -->
@@ -2049,7 +2049,7 @@ app.get('/', (c) => {
                 <!-- ロゴとタイトル -->
                 <div class="mb-8">
                     <div class="flex items-center justify-center mb-6">
-                        <img src="/static/logos/corefirst-logo-new.png" alt="Core First" class="h-20">
+                        <img src="/static/logos/corefirst-logo-complete.png" alt="Core First" class="h-12">
                     </div>
                     <p class="text-xl text-gray-600">統合管理システムで、ビジネスを効率化する</p>
                 </div>
