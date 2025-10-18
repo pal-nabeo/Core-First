@@ -4,9 +4,13 @@ import { cors } from 'hono/cors';
 import { serveStatic } from 'hono/cloudflare-workers';
 import { auth } from './routes/auth-simple';
 import { tenantMiddleware, securityHeaders } from './middleware/auth';
+import { licenseCheckMiddleware } from './middleware/license';
+import { roleSeparationMiddleware, requireServiceProvider, requireTenantAdmin } from './middleware/role-separation';
+import { requireTwoFactorAuth } from './middleware/two-factor-auth';
 import type { CloudflareBindings } from './types/auth';
 import usersApi from './routes/users';
 import licensesApi from './routes/licenses';
+import licenseManagementApi from './routes/license-management';
 
 const app = new Hono<{ Bindings: CloudflareBindings }>();
 
@@ -15,6 +19,15 @@ app.use('*', securityHeaders);
 
 // テナント分離ミドルウェア適用
 app.use('*', tenantMiddleware);
+
+// ライセンスチェックミドルウェア適用
+app.use('*', licenseCheckMiddleware);
+
+// 権限分離ミドルウェア適用
+app.use('*', roleSeparationMiddleware);
+
+// 2要素認証ミドルウェア適用（高権限機能に対して）
+app.use('*', requireTwoFactorAuth);
 
 // CORS設定（API用）
 app.use('/api/*', cors({
@@ -57,15 +70,31 @@ app.route('/api/tenant', tenant);
 import accountApi from './routes/account';
 app.route('/api/account', accountApi);
 
-// 管理者API
+// 管理者API（テナント管理者以上限定）
 import adminApi from './routes/admin';
+app.use('/api/admin/*', requireTenantAdmin);
 app.route('/api/admin', adminApi);
 app.route('/api/users', usersApi);
 app.route('/api/licenses', licensesApi);
+app.route('/api/license-management', licenseManagementApi);
 import invitationsApi from './routes/invitations';
 app.route('/api/invitations', invitationsApi);
 import upgradeApi from './routes/upgrade';
 app.route('/api/upgrade', upgradeApi);
+
+// サービス提供者ダッシュボードAPI（サービス提供者限定）
+import { providerDashboard } from './routes/provider-dashboard';
+app.use('/api/provider-dashboard/*', requireServiceProvider);
+app.route('/api/provider-dashboard', providerDashboard);
+
+// サービス提供者認証API（サービス提供者限定）
+import serviceProviderAuth from './routes/service-provider-auth';
+app.use('/api/service-provider-auth/*', requireServiceProvider);
+app.route('/api/service-provider-auth', serviceProviderAuth);
+
+// 2要素認証API
+import twoFactorAuthRoutes from './routes/two-factor-auth';
+app.route('/api/auth/two-factor', twoFactorAuthRoutes);
 
 // API 基本情報
 app.get('/api', (c) => {
@@ -554,7 +583,34 @@ app.get('/admin', (c) => {
             </div>
         </div>
 
-        <script src="/static/admin.js"></script>
+        <script>
+            console.log('Inline script loaded');
+            // エラーリスナーを設定
+            window.addEventListener('error', function(e) {
+                console.error('Global JavaScript error:', e.error, e.message, e.filename, e.lineno);
+            });
+            
+            // JavaScriptファイルの読み込み確認
+            const script = document.createElement('script');
+            script.onload = function() {
+                console.log('External JS file loaded successfully');
+                // スクリプト読み込み後に少し待ってからチェック
+                setTimeout(function() {
+                    console.log('Checking if initialization functions exist...');
+                    if (typeof checkAuth === 'function') {
+                        console.log('checkAuth function found - starting authentication check');
+                        checkAuth();
+                    } else {
+                        console.error('checkAuth function not found');
+                    }
+                }, 100);
+            };
+            script.onerror = function(e) {
+                console.error('Failed to load external JS file:', e);
+            };
+            script.src = '/static/admin.js';
+            document.head.appendChild(script);
+        </script>
     </body>
     </html>
   `);
@@ -562,7 +618,7 @@ app.get('/admin', (c) => {
 
 
 
-// 管理者ダッシュボード（認証必要）
+// サービス提供者管理ダッシュボード（Core First運営側）
 app.get('/admin-dashboard', (c) => {
   return c.html(`
     <!DOCTYPE html>
@@ -570,12 +626,12 @@ app.get('/admin-dashboard', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>管理者ダッシュボード - Core First</title>
+        <title>Core First 統合管理システム - サービス提供者ダッシュボード</title>
         <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <link href="/static/dashboard.css" rel="stylesheet">
+        <link href="/static/admin-provider-dashboard.css" rel="stylesheet">
     </head>
     <body class="bg-gray-50">
         <div class="flex h-screen overflow-hidden">
@@ -583,162 +639,209 @@ app.get('/admin-dashboard', (c) => {
             <aside id="sidebar" class="flex-shrink-0 w-80 bg-white transition-all duration-300 ease-in-out shadow-xl border-r border-gray-200">
                 <div class="flex flex-col h-full">
                     <!-- ロゴ -->
-                    <div class="flex items-center h-16 bg-white border-b border-gray-200 px-4">
+                    <div class="flex items-center h-16 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4">
                         <!-- 展開時のロゴ（画像 + テキスト） -->
                         <div class="flex items-center sidebar-text" id="sidebar-logo">
                             <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
                                  alt="Core First Logo" 
-                                 class="w-8 h-8 mr-3">
-                            <h3 class="text-lg font-bold text-blue-900">Core First</h3>
+                                 class="w-8 h-8 mr-3 filter brightness-0 invert">
+                            <div>
+                                <h3 class="text-lg font-bold">Core First</h3>
+                                <p class="text-xs opacity-90">統合管理システム</p>
+                            </div>
                         </div>
                         <!-- 折りたたみ時のロゴ（画像のみ） -->
                         <div class="sidebar-icon hidden flex items-center justify-center" id="sidebar-logo-collapsed">
                             <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
                                  alt="Core First Logo" 
-                                 class="w-8 h-8">
+                                 class="w-8 h-8 filter brightness-0 invert">
                         </div>
                     </div>
 
                     <!-- ナビゲーションメニュー -->
                     <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                        <!-- ダッシュボード -->
-                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 px-3 py-2 bg-gray-50 rounded-lg mx-2 sidebar-text">
-                            <i class="fas fa-home mr-2 text-blue-600"></i>メイン
+                        <!-- メイン統合ダッシュボード -->
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 px-3 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg mx-2 sidebar-text">
+                            <i class="fas fa-globe mr-2 text-blue-600"></i>統合管理
                         </div>
-                        <a href="#" onclick="showSection('overview')" class="nav-item active" data-section="overview" data-tooltip="ダッシュボード - 概要・統計情報">
-                            <i class="fas fa-tachometer-alt text-lg text-blue-600 nav-icon"></i>
+                        <a href="#" class="nav-item active" data-section="overview" data-tooltip="統合ダッシュボード - 全テナント概要・KPI">
+                            <i class="fas fa-chart-pie text-lg nav-icon"></i>
                             <div class="flex-1 sidebar-text">
-                                <span class="font-medium">ダッシュボード</span>
-                                <div class="text-xs mt-0.5">概要・統計情報</div>
-                            </div>
-                        </a>
-
-                        <!-- ユーザー管理セクション -->
-                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-blue-50 rounded-lg mx-2 sidebar-text">
-                            <i class="fas fa-users-cog mr-2 text-blue-600"></i>管理機能
-                        </div>
-                        
-                        <!-- ユーザー管理 -->
-                        <a href="#" onclick="showSection('users')" class="nav-item" data-section="users" data-tooltip="ユーザー管理 - アカウント・権限管理">
-                            <i class="fas fa-users text-lg text-blue-600 nav-icon"></i>
-                            <div class="flex-1 sidebar-text">
-                                <span class="font-medium">ユーザー管理</span>
-                                <div class="text-xs mt-0.5">アカウント・権限管理</div>
+                                <span class="font-medium">統合ダッシュボード</span>
+                                <div class="text-xs mt-0.5">全テナント・売上・稼働率</div>
                             </div>
                         </a>
                         
-                        <!-- ライセンス管理 -->
-                        <a href="#" onclick="showSection('licenses')" class="nav-item" data-section="licenses" data-tooltip="ライセンス管理 - 使用量・制限管理">
-                            <i class="fas fa-key text-lg text-blue-600 nav-icon"></i>
+                        <a href="#" class="nav-item" data-section="realtime-monitoring" data-tooltip="リアルタイム監視 - システム状況・アラート">
+                            <i class="fas fa-heartbeat text-lg nav-icon"></i>
                             <div class="flex-1 sidebar-text">
-                                <span class="font-medium">ライセンス管理</span>
-                                <div class="text-xs mt-0.5">使用量・制限管理</div>
+                                <span class="font-medium">リアルタイム監視</span>
+                                <div class="text-xs mt-0.5">システム状況・アラート</div>
                             </div>
                         </a>
 
-                        <!-- 権限管理 -->
-                        <a href="#" onclick="showSection('roles')" class="nav-item" data-section="roles" data-tooltip="権限管理 - ロール・アクセス制御">
-                            <i class="fas fa-shield-alt text-lg text-blue-600 nav-icon"></i>
+                        <!-- テナント管理セクション -->
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg mx-2 sidebar-text">
+                            <i class="fas fa-building mr-2 text-purple-600"></i>テナント管理
+                        </div>
+                        
+                        <a href="#" class="nav-item" data-section="tenant-management" data-tooltip="テナント管理 - 企業管理・プラン設定">
+                            <i class="fas fa-city text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">テナント管理</span>
+                                <div class="text-xs mt-0.5">企業管理・プラン設定</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="nav-item" data-section="cross-tenant-users" data-tooltip="横断ユーザー管理 - 全テナント検索・緊急操作">
+                            <i class="fas fa-users-cog text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">横断ユーザー管理</span>
+                                <div class="text-xs mt-0.5">全テナント検索・緊急操作</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="nav-item" data-section="usage-analytics" data-tooltip="利用分析 - テナント別利用状況・傾向分析">
+                            <i class="fas fa-analytics text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">利用分析</span>
+                                <div class="text-xs mt-0.5">テナント別利用状況・傾向</div>
+                            </div>
+                        </a>
+
+                        <!-- 請求・課金管理セクション -->
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg mx-2 sidebar-text">
+                            <i class="fas fa-dollar-sign mr-2 text-green-600"></i>課金管理
+                        </div>
+                        
+                        <a href="#" class="nav-item" data-section="revenue-dashboard" data-tooltip="売上ダッシュボード - 売上分析・予測">
+                            <i class="fas fa-chart-line text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">売上ダッシュボード</span>
+                                <div class="text-xs mt-0.5">売上分析・予測</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="nav-item" data-section="billing-management" data-tooltip="請求管理 - 一括発行・支払い状況">
+                            <i class="fas fa-file-invoice-dollar text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">請求管理</span>
+                                <div class="text-xs mt-0.5">一括発行・支払い状況</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="nav-item" data-section="subscription-management" data-tooltip="サブスクリプション管理 - プラン変更・キャンセル">
+                            <i class="fas fa-sync-alt text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">サブスクリプション</span>
+                                <div class="text-xs mt-0.5">プラン変更・キャンセル</div>
+                            </div>
+                        </a>
+
+                        <!-- サポート・顧客管理セクション -->
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg mx-2 sidebar-text">
+                            <i class="fas fa-headset mr-2 text-orange-600"></i>サポート
+                        </div>
+                        
+                        <a href="#" class="nav-item" data-section="support-tickets" data-tooltip="サポートチケット - 問い合わせ管理">
+                            <i class="fas fa-ticket-alt text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">サポートチケット</span>
+                                <div class="text-xs mt-0.5">問い合わせ管理</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="nav-item" data-section="customer-success" data-tooltip="カスタマーサクセス - 健全性・チャーン予測">
+                            <i class="fas fa-users-crown text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">カスタマーサクセス</span>
+                                <div class="text-xs mt-0.5">健全性・チャーン予測</div>
+                            </div>
+                        </a>
+
+                        <!-- システム管理セクション -->
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg mx-2 sidebar-text">
+                            <i class="fas fa-server mr-2 text-red-600"></i>システム管理
+                        </div>
+                        
+                        <a href="#" class="nav-item" data-section="system-monitoring" data-tooltip="システム監視 - パフォーマンス・障害監視">
+                            <i class="fas fa-desktop text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">システム監視</span>
+                                <div class="text-xs mt-0.5">パフォーマンス・障害監視</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="nav-item" data-section="audit-logs" data-tooltip="監査ログ - セキュリティ・コンプライアンス">
+                            <i class="fas fa-shield-alt text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">監査ログ</span>
+                                <div class="text-xs mt-0.5">セキュリティ・コンプライアンス</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="nav-item" data-section="backup-management" data-tooltip="バックアップ管理 - データ保護・復旧">
+                            <i class="fas fa-database text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">バックアップ管理</span>
+                                <div class="text-xs mt-0.5">データ保護・復旧</div>
+                            </div>
+                        </a>
+
+                        <!-- 管理者管理セクション -->
+                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg mx-2 sidebar-text">
+                            <i class="fas fa-users-shield mr-2 text-indigo-600"></i>管理者管理
+                        </div>
+                        
+                        <a href="#" class="nav-item" data-section="admin-users" data-tooltip="管理者管理 - 提供者側管理者アカウント">
+                            <i class="fas fa-user-shield text-lg nav-icon"></i>
+                            <div class="flex-1 sidebar-text">
+                                <span class="font-medium">管理者管理</span>
+                                <div class="text-xs mt-0.5">提供者側管理者アカウント</div>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="nav-item" data-section="role-permissions" data-tooltip="権限管理 - ロール・アクセス制御">
+                            <i class="fas fa-key text-lg nav-icon"></i>
                             <div class="flex-1 sidebar-text">
                                 <span class="font-medium">権限管理</span>
                                 <div class="text-xs mt-0.5">ロール・アクセス制御</div>
                             </div>
                         </a>
-
-                        <!-- システムセクション -->
-                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-green-50 rounded-lg mx-2 sidebar-text">
-                            <i class="fas fa-cogs mr-2 text-green-600"></i>システム
-                        </div>
-                        
-                        <!-- 監査ログ -->
-                        <a href="#" onclick="showSection('audit')" class="nav-item" data-section="audit" data-tooltip="監査ログ - アクティビティ履歴">
-                            <i class="fas fa-history text-lg text-blue-600 nav-icon"></i>
-                            <div class="flex-1 sidebar-text">
-                                <span class="font-medium">監査ログ</span>
-                                <div class="text-xs mt-0.5">アクティビティ履歴</div>
-                            </div>
-                        </a>
-                        
-                        <!-- システム設定 -->
-                        <a href="#" onclick="showSection('settings')" class="nav-item" data-section="settings" data-tooltip="システム設定 - 基本設定・環境設定">
-                            <i class="fas fa-cog text-lg text-blue-600 nav-icon"></i>
-                            <div class="flex-1 sidebar-text">
-                                <span class="font-medium">システム設定</span>
-                                <div class="text-xs mt-0.5">基本設定・環境設定</div>
-                            </div>
-                        </a>
-
-                        <!-- レポート -->
-                        <a href="#" onclick="showSection('reports')" class="nav-item" data-section="reports" data-tooltip="レポート - 統計・分析・エクスポート">
-                            <i class="fas fa-chart-bar text-lg text-blue-600 nav-icon"></i>
-                            <div class="flex-1 sidebar-text">
-                                <span class="font-medium">レポート</span>
-                                <div class="text-xs mt-0.5">統計・分析・エクスポート</div>
-                            </div>
-                        </a>
-
-                        <!-- 課金・プランセクション -->
-                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-orange-50 rounded-lg mx-2 sidebar-text">
-                            <i class="fas fa-credit-card mr-2 text-orange-600"></i>課金・プラン
-                        </div>
-                        
-                        <!-- アップグレード -->
-                        <a href="#" onclick="showSection('upgrade')" class="nav-item" data-section="upgrade" data-tooltip="アップグレード - プラン変更・料金確認">
-                            <i class="fas fa-arrow-up text-lg text-blue-600 nav-icon"></i>
-                            <div class="flex-1 sidebar-text">
-                                <span class="font-medium">アップグレード</span>
-                                <div class="text-xs mt-0.5">プラン変更・料金確認</div>
-                            </div>
-                        </a>
-                        
-                        <!-- 課金履歴 -->
-                        <a href="#" onclick="showSection('billing')" class="nav-item" data-section="billing" data-tooltip="課金履歴 - 請求・支払い履歴">
-                            <i class="fas fa-receipt text-lg text-blue-600 nav-icon"></i>
-                            <div class="flex-1 sidebar-text">
-                                <span class="font-medium">課金履歴</span>
-                                <div class="text-xs mt-0.5">請求・支払い履歴</div>
-                            </div>
-                        </a>
-
-                        <!-- アカウント管理セクション -->
-                        <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-4 mt-8 px-3 py-2 bg-purple-50 rounded-lg mx-2 sidebar-text">
-                            <i class="fas fa-user-cog mr-2 text-purple-600"></i>アカウント
-                        </div>
-                        
-                        <!-- プロフィール編集 -->
-                        <a href="#" onclick="showSection('profile')" class="nav-item" data-section="profile" data-tooltip="プロフィール - 基本情報・設定変更">
-                            <i class="fas fa-user-edit text-lg text-blue-600 nav-icon"></i>
-                            <div class="flex-1 sidebar-text">
-                                <span class="font-medium">プロフィール</span>
-                                <div class="text-xs mt-0.5">基本情報・設定変更</div>
-                            </div>
-                        </a>
-                        
-                        <!-- セキュリティ設定 -->
-                        <a href="#" onclick="showSection('security')" class="nav-item" data-section="security" data-tooltip="セキュリティ - パスワード・2FA設定">
-                            <i class="fas fa-lock text-lg text-blue-600 nav-icon"></i>
-                            <div class="flex-1 sidebar-text">
-                                <span class="font-medium">セキュリティ</span>
-                                <div class="text-xs mt-0.5">パスワード・2FA設定</div>
-                            </div>
-                        </a>
                     </nav>
 
+                    <!-- ロール切り替えボタン -->
+                    <div class="border-t border-gray-200 p-4">
+                        <div class="mb-4">
+                            <button id="switch-to-tenant" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-3 py-2 rounded-md text-sm transition-all shadow-sm sidebar-text">
+                                <i class="fas fa-exchange-alt mr-2"></i>
+                                <span>テナント管理画面</span>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <!-- ユーザー情報 -->
-                    <div class="border-t border-gray-200 bg-gray-50 p-4">
+                    <div class="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50 p-4">
                         <div class="flex items-center">
-                            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                                <i class="fas fa-user"></i>
+                            <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                <i class="fas fa-user-crown"></i>
                             </div>
                             <div class="ml-3 sidebar-text">
-                                <p class="text-sm font-medium text-gray-900" id="user-name">管理者</p>
-                                <p class="text-xs text-gray-600" id="user-role">super_admin</p>
+                                <p class="text-sm font-medium text-gray-900" id="user-name">Core First 管理者</p>
+                                <p class="text-xs text-gray-600" id="user-role">スーパー管理者</p>
+                                <p class="text-xs text-blue-600 font-medium">サービス提供者側</p>
                             </div>
                         </div>
-                        <button onclick="logout()" class="mt-3 w-full bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm transition-colors shadow-sm" data-tooltip="ログアウト">
-                            <i class="fas fa-sign-out-alt mr-2 nav-icon"></i>
-                            <span class="sidebar-text">ログアウト</span>
-                        </button>
+                        <div class="mt-3 space-y-2">
+                            <button id="profile-button" class="w-full bg-white hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-md text-sm transition-colors border border-gray-300 shadow-sm sidebar-text">
+                                <i class="fas fa-user-edit mr-2"></i>
+                                <span>プロフィール設定</span>
+                            </button>
+                            <button id="logout-button" class="w-full bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm transition-colors shadow-sm sidebar-text">
+                                <i class="fas fa-sign-out-alt mr-2"></i>
+                                <span>ログアウト</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -748,10 +851,13 @@ app.get('/admin-dashboard', (c) => {
                 <!-- トップバー -->
                 <header class="bg-white shadow-sm border-b h-16 flex items-center justify-between px-6">
                     <div class="flex items-center">
-                        <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 mr-4">
+                        <button id="sidebar-toggle" class="text-gray-600 hover:text-gray-900 mr-4">
                             <i class="fas fa-bars text-lg"></i>
                         </button>
-                        <h1 class="text-xl font-semibold text-gray-900" id="page-title">管理者ダッシュボード</h1>
+                        <div>
+                            <h1 class="text-xl font-semibold text-gray-900" id="page-title">Core First 統合管理システム</h1>
+                            <p class="text-sm text-gray-600" id="page-subtitle">サービス提供者ダッシュボード - 全テナント統合管理</p>
+                        </div>
                     </div>
                     
                     <div class="flex items-center space-x-4">
@@ -1793,7 +1899,33 @@ app.get('/admin-dashboard', (c) => {
             </div>
         </div>
 
-        <script src="/static/dashboard.js"></script>
+        <script>
+            console.log('Inline script loaded');
+            // エラーリスナーを設定
+            window.addEventListener('error', function(e) {
+                console.error('Global JavaScript error:', e.error, e.message, e.filename, e.lineno);
+            });
+            
+            // JavaScriptファイルの読み込み確認
+            const script = document.createElement('script');
+            script.onload = function() {
+                console.log('External JS file loaded successfully');
+                // スクリプト読み込み後に少し待ってからチェック
+                setTimeout(function() {
+                    console.log('Checking if initialization functions exist...');
+                    if (typeof initializeWhenReady === 'function') {
+                        console.log('initializeWhenReady function found');
+                    } else {
+                        console.error('initializeWhenReady function not found');
+                    }
+                }, 100);
+            };
+            script.onerror = function(e) {
+                console.error('Failed to load external JS file:', e);
+            };
+            script.src = '/static/admin-provider-dashboard.js';
+            document.head.appendChild(script);
+        </script>
     </body>
     </html>
   `);
@@ -4251,6 +4383,230 @@ app.get('/report-management', (c) => {
         </div>
 
         <script src="/static/report-management.js"></script>
+    </body>
+    </html>
+  `);
+});
+
+// サービス利用者側テナント管理ダッシュボード（テナント企業内の管理機能）
+app.get('/tenant-dashboard', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>テナント管理ダッシュボード - Core First</title>
+        <link rel="icon" type="image/svg+xml" href="/static/logos/corefirst-favicon.svg">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body class="bg-gray-50">
+        <div class="min-h-screen flex flex-col">
+            <!-- ヘッダー -->
+            <header class="bg-white shadow-sm border-b">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex items-center justify-between h-16">
+                        <div class="flex items-center">
+                            <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
+                                 alt="Core First Logo" 
+                                 class="w-8 h-8 mr-3">
+                            <div>
+                                <h1 class="text-xl font-bold text-gray-900">Core First</h1>
+                                <p class="text-sm text-gray-600">テナント管理ダッシュボード</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <div class="text-sm text-gray-600">
+                                <span class="font-medium">ABC物流株式会社</span>
+                                <span class="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Standardプラン</span>
+                            </div>
+                            
+                            <button onclick="switchToProviderView()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition-colors">
+                                <i class="fas fa-crown mr-2"></i>
+                                統合管理画面
+                            </button>
+                            
+                            <button onclick="logout()" class="text-gray-600 hover:text-gray-900">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- メインコンテンツ -->
+            <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">テナント管理機能</h2>
+                    <p class="text-gray-600">自社テナント内のユーザー・権限・設定を管理します</p>
+                </div>
+                
+                <!-- 機能カード -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <i class="fas fa-users text-blue-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-900">ユーザー管理</h3>
+                                <p class="text-sm text-gray-600">自社内ユーザーの管理</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">総ユーザー数</span>
+                                <span class="font-semibold">23名</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">アクティブユーザー</span>
+                                <span class="font-semibold text-green-600">21名</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">利用可能枠</span>
+                                <span class="font-semibold text-blue-600">50名まで</span>
+                            </div>
+                        </div>
+                        <button class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm transition-colors">
+                            ユーザー管理を開く
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 bg-purple-50 rounded-lg">
+                                <i class="fas fa-shield-alt text-purple-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-900">権限管理</h3>
+                                <p class="text-sm text-gray-600">ロール・アクセス制御</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">管理者</span>
+                                <span class="font-semibold">3名</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">一般ユーザー</span>
+                                <span class="font-semibold">18名</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">ゲスト</span>
+                                <span class="font-semibold">2名</span>
+                            </div>
+                        </div>
+                        <button class="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-md text-sm transition-colors">
+                            権限管理を開く
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <i class="fas fa-chart-bar text-green-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-900">利用状況</h3>
+                                <p class="text-sm text-gray-600">使用量・制限確認</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">データ使用量</span>
+                                <span class="font-semibold">2.4GB / 10GB</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">API利用量</span>
+                                <span class="font-semibold">8,450 / 50,000</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                <div class="bg-green-600 h-2 rounded-full" style="width: 24%"></div>
+                            </div>
+                        </div>
+                        <button class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white py-2 rounded-md text-sm transition-colors">
+                            詳細を確認
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- アラート・お知らせ -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle text-blue-600 mr-3"></i>
+                        <div>
+                            <h4 class="text-blue-900 font-semibold">テナント管理機能について</h4>
+                            <p class="text-blue-800 text-sm mt-1">
+                                この画面では、自社テナント内のユーザー管理・権限設定・利用状況確認ができます。
+                                全テナント横断の管理は「統合管理画面」をご利用ください。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 最近の活動 -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">最近の活動</h3>
+                        <p class="text-sm text-gray-600">自社テナント内の活動履歴</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user-plus text-green-600 text-xs"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">新規ユーザー追加</p>
+                                    <p class="text-xs text-gray-500">山田太郎さんが倉庫管理者として追加されました</p>
+                                </div>
+                                <span class="text-xs text-gray-400">1時間前</span>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-key text-blue-600 text-xs"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">権限変更</p>
+                                    <p class="text-xs text-gray-500">佐藤花子さんの権限がユーザーから管理者に変更されました</p>
+                                </div>
+                                <span class="text-xs text-gray-400">3時間前</span>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600 text-xs"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">利用量アラート</p>
+                                    <p class="text-xs text-gray-500">データ使用量が制限の80%に達しました</p>
+                                </div>
+                                <span class="text-xs text-gray-400">1日前</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        
+        <script>
+            function switchToProviderView() {
+                if (confirm('統合管理画面に切り替えますか？\n（サービス提供者側の管理機能に移動します）')) {
+                    window.location.href = '/admin-dashboard';
+                }
+            }
+            
+            function logout() {
+                if (confirm('ログアウトしますか？')) {
+                    localStorage.removeItem('authToken');
+                    window.location.href = '/login';
+                }
+            }
+        </script>
     </body>
     </html>
   `);

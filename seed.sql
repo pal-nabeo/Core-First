@@ -53,6 +53,9 @@ INSERT OR IGNORE INTO organization_units (id, tenant_id, name, code, unit_type, 
 -- 5. テストユーザーの作成
 -- パスワードは全て "password123" のbcryptハッシュ: $2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewMLaACl3PGec4Zy
 INSERT OR IGNORE INTO users (id, tenant_id, email, display_name, hashed_password, password_algo, status, email_verified, created_at) VALUES 
+  -- システム統合管理者
+  ('user_system_admin', 'system', 'system@corefirst.com', 'システム統合管理者', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewMLaACl3PGec4Zy', 'bcrypt', 'active', 1, '2024-01-01 09:00:00'),
+  
   -- ABC物流のユーザー
   ('user_abc_admin', 'tenant_abc_logistics', 'admin@abc-logistics.co.jp', '田中 太郎', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewMLaACl3PGec4Zy', 'bcrypt', 'active', 1, '2024-01-01 10:00:00'),
   ('user_abc_manager', 'tenant_abc_logistics', 'manager@abc-logistics.co.jp', '佐藤 花子', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewMLaACl3PGec4Zy', 'bcrypt', 'active', 1, '2024-01-02 11:00:00'),
@@ -68,6 +71,9 @@ INSERT OR IGNORE INTO users (id, tenant_id, email, display_name, hashed_password
 
 -- 6. ユーザーロール割り当て
 INSERT OR IGNORE INTO user_roles (id, user_id, role_id, scope, assigned_by, assigned_at) VALUES 
+  -- システム統合管理者のロール割り当て
+  ('ur_system_admin_super', 'user_system_admin', 'role_system_super_admin', 'system', NULL, '2024-01-01 09:00:00'),
+  
   -- ABC物流のロール割り当て
   ('ur_abc_admin_super', 'user_abc_admin', 'role_abc_super_admin', 'tenant', NULL, '2024-01-01 10:00:00'),
   ('ur_abc_manager_admin', 'user_abc_manager', 'role_abc_admin', 'tenant', 'user_abc_admin', '2024-01-02 11:00:00'),
