@@ -4,6 +4,15 @@ import type { CloudflareBindings } from '../types/auth';
 
 const test = new Hono<{ Bindings: CloudflareBindings }>();
 
+// ヘルスチェック
+test.get('/health', (c) => {
+  return c.json({
+    status: 'ok',
+    message: 'Core First 統合管理システム is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // 基本テスト
 test.get('/hello', (c) => {
   return c.json({

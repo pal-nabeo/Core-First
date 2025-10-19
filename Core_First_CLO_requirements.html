@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light" style=""><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Core First CLO向け管理機能システム設計書</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&amp;display=swap" rel="stylesheet">
+    <style>
+      body {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 32px 80px;
+        position: relative;
+        box-sizing: border-box;
+        font-family: 'Noto Sans JP', 'Times New Roman', serif;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #333;
+      }
+      h1 {
+        text-align: center;
+        border-bottom: 3px solid #2c3e50;
+        padding-bottom: 20px;
+        margin-bottom: 40px;
+        font-size: 28px;
+        font-weight: 700;
+        color: #2c3e50;
+      }
+      h2 {
+        font-size: 22px;
+        font-weight: 600;
+        color: #34495e;
+        border-left: 4px solid #3498db;
+        padding-left: 15px;
+        margin-top: 40px;
+        margin-bottom: 20px;
+      }
+      h3 {
+        font-size: 18px;
+        font-weight: 500;
+        color: #2c3e50;
+        margin-top: 30px;
+        margin-bottom: 15px;
+      }
+      .project-info {
+        background-color: #ecf0f1;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 30px;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 500;
+      }
+      .system-overview {
+        background-color: #f8f9fa;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid #007bff;
+      }
+      .architecture-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+      .architecture-table th,
+      .architecture-table td {
+        border: 1px solid #bdc3c7;
+        padding: 12px;
+        text-align: left;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .architecture-table th {
+        background-color: #3498db;
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        border: 1px solid #2980b9;
+      }
+      .architecture-table tr:nth-child(even) {
+        background-color: #f8f9fa;
+      }
+      .feature-box {
+        margin: 15px 0;
+        padding: 15px;
+        border: 1px solid #e9ecef;
+        background-color: #fff;
+      }
+      .requirement-list {
+        list-style-type: none;
+        padding-left: 0;
+      }
+      .requirement-list li {
+        margin: 10px 0;
+        padding: 8px 12px;
+        background-color: #f8f9fa;
+        border-left: 3px solid #28a745;
+      }
+      .challenge-item {
+        margin: 8px 0;
+        padding: 5px 0 5px 15px;
+        position: relative;
+      }
+      .challenge-item:before {
+        content: '•';
+        color: #e74c3c;
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+      }
+      .solution-item {
+        margin: 8px 0;
+        padding: 5px 0 5px 15px;
+        position: relative;
+      }
+      .solution-item:before {
+        content: '✓';
+        color: #27ae60;
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+      }
+      .data-flow {
+        text-align: center;
+        margin: 20px 0;
+        padding: 20px;
+        background-color: #f1f3f4;
+        border: 1px solid #dadce0;
+      }
+      .screen-design {
+        background-color: #fafafa;
+        padding: 20px;
+        margin: 15px 0;
+        border: 1px solid #e0e0e0;
+      }
+      .sla-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+      }
+      .sla-table th,
+      .sla-table td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: center;
+      }
+      .sla-table th {
+        background-color: #e9ecef;
+      }
+      .version-info {
+        text-align: right;
+        font-size: 12px;
+        color: #666;
+        margin-top: 30px;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+      }
+      .note {
+        border-left: 4px solid #f39c12;
+        background-color: #fef9e7;
+        padding: 15px 20px;
+        margin: 20px 0;
+        font-style: italic;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .important {
+        background: #ffebee;
+        border-left: 4px solid #f44336;
+        padding: 15px 20px;
+        margin: 20px 0;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .priority-high {
+        background-color: #ffebee;
+        color: #c62828;
+        font-weight: bold;
+      }
+      .priority-medium {
+        background-color: #fff3e0;
+        color: #ef6c00;
+      }
+      .priority-low {
+        background-color: #f3e5f5;
+        color: #7b1fa2;
+      }
+      h4 {
+        font-size: 16px;
+        font-weight: 500;
+        color: #2c3e50;
+        margin-top: 20px;
+        margin-bottom: 10px;
+      }
+      ul,
+      ol {
+        margin: 15px 0;
+        padding-left: 25px;
+        font-size: 14px;
+      }
+      li {
+        margin: 8px 0;
+        line-height: 1.5;
+      }
+      p {
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 15px 0;
+      }
+    </style>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Open%20Sans:wght@400&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Noto%20Sans%20JP:wght@400&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&amp;display=swap" rel="stylesheet"></head>
+  <body style="">
+    <h1>Core First テナント向けサービス利用システム設計書<br><small style="font-size: 18px; color: #7f8c8d;">（CLO向け物流管理機能）</small></h1>
+
+    <div class="project-info">
+      <h3>文書情報</h3>
+      <table class="architecture-table">
+        <tbody><tr>
+          <td><strong>作成日</strong></td>
+          <td>2024年12月</td>
+        </tr>
+        <tr>
+          <td><strong>最終更新日</strong></td>
+          <td>2025年10月17日</td>
+        </tr>
+        <tr>
+          <td><strong>文書バージョン</strong></td>
+          <td>v2.0</td>
+        </tr>
+        <tr>
+          <td><strong>対象システム</strong></td>
+          <td>Core First テナント向けサービス（サービス利用者側システム）</td>
+        </tr>
+        <tr>
+          <td><strong>システム種別</strong></td>
+          <td><span style="background-color: #e3f2fd; padding: 5px 10px; border-radius: 3px; font-weight: bold;">サービス利用者側（テナント向け）</span></td>
+        </tr>
+        <tr>
+          <td><strong>文書の目的</strong></td>
+          <td>物流企業が利用するCLO向け物流・サプライチェーン管理機能のシステム設計仕様</td>
+        </tr>
+        <tr>
+          <td><strong>対象読者</strong></td>
+          <td>物流企業のシステム管理者・CLO・物流担当者・開発チーム</td>
+        </tr>
+        <tr>
+          <td><strong>関連文書</strong></td>
+          <td>
+            <strong>サービス利用者側文書：</strong><br>
+            - Core First ログイン管理機能 要件定義書 v2.0<br>
+            - Core First アカウント管理機能 要件定義書 v2.0<br>
+            - Core First ライセンス管理機能 要件定義書 v2.0<br>
+            - Core First ログ管理機能 要件定義書 v2.0<br>
+            - Core First データアップロードとマッピング機能 要件定義書 v2.0<br>
+            <strong>サービス提供者側文書：</strong><br>
+            - Core First 管理者サイト 要件定義兼システム設計書 v1.0
+          </td>
+        </tr>
+      </tbody></table>
+    </div>
+
+    <div class="important">
+      <strong>📌 システム区分の明確化</strong><br>
+      本設計書は<strong>「サービス利用者側（テナント向け）」</strong>のシステム設計を定めています。<br>
+      <ul style="margin-top: 10px; margin-bottom: 0;">
+        <li><strong>サービス利用者側：</strong>物流企業（テナント）が自社の物流・サプライチェーン管理を行うためのシステム</li>
+        <li><strong>サービス提供者側：</strong>Core First運営会社が全テナントを統合管理するシステム（別文書で定義）</li>
+      </ul>
+    </div>
+
+    <div style="border: none; border-top: 2px solid #bdc3c7; margin: 40px 0;"></div>
+
+    <h2>1. システム概要</h2>
+
+    <h3>1.1 プロジェクト目的と背景</h3>
+    <div class="system-overview">
+      <p>
+        <strong>目的：</strong>本プロジェクトは、CLO（Chief Logistics Officer：最高ロジスティクス責任者）向けの包括的な物流・サプライチェーン管理SaaSプラットフォームの開発を目的とします。現代の複雑化するグローバルサプライチェーンにおいて、リアルタイムでの可視化、予測分析、意思決定支援機能を提供し、物流効率の最大化とコスト削減を実現します。
+      </p>
+      <p>
+        <strong>対象ユーザー：</strong>物流企業（テナント）のCLO、物流管理者、現場担当者が、自社の物流業務最適化のために利用するシステムです。
+      </p>
+    </div>
+
+    <h3>1.2 システム区分と対象範囲</h3>
+    <table class="architecture-table">
+      <thead>
+        <tr>
+          <th>システム種別</th>
+          <th>対象ユーザー</th>
+          <th>主要機能</th>
+          <th>文書</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background-color: #e3f2fd;">
+          <td><strong>サービス利用者側<br>（本設計書の対象）</strong></td>
+          <td>物流企業（テナント）<br>CLO、物流担当者</td>
+          <td>物流データ分析、AI支援、レポート生成、データ連携、業務最適化</td>
+          <td>本設計書</td>
+        </tr>
+        <tr style="background-color: #fff3e0;">
+          <td><strong>サービス提供者側<br>（別文書で定義）</strong></td>
+          <td>Core First運営会社<br>システム管理者、サポート</td>
+          <td>全テナント管理、ライセンス管理、システム監視、課金管理</td>
+          <td>管理者サイト設計書</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="important">
+      <strong>Core First テナント向けサービスの特徴</strong><br>
+      - <strong>テナント専用環境:</strong> 物流企業単位での完全なデータ分離とプライバシー保護<br>
+      - <strong>CLO向け専門機能:</strong> 物流データ分析、AI支援、レポート生成、データ連携<br>
+      - <strong>組織内権限管理:</strong> 企業内の部門・役職に応じた柔軟な権限設定<br>
+      - <strong>マルチテナントアーキテクチャ:</strong> 他企業のデータと完全分離された安全な環境
+    </div>
+
+    <div class="note">
+      <strong>サイト遷移フロー</strong><br>
+      Core First管理者サイトでログイン → 認証・権限確認 → CLO向けサイトへ自動遷移 → チュートリアルページ表示 → カテゴリ別AI分析・チャット・レポート機能・データ連携機能への画面遷移
+    </div>
+
+    <h3>1.3 主要課題と解決方針</h3>
+
+    <h4>物流企業（テナント）が抱える主要課題</h4>
+    <div class="challenge-item">サプライチェーン全体の可視性不足</div>
+    <div class="challenge-item">リアルタイムでの在庫・配送状況把握の困難</div>
+    <div class="challenge-item">需要予測精度の低さによる過剰在庫・欠品リスク</div>
+    <div class="challenge-item">物流コストの増大と効率性の低下</div>
+    <div class="challenge-item">災害・パンデミック等による供給網の脆弱性</div>
+    <div class="challenge-item">複数システム間のデータサイロ化</div>
+
+    <h4>Core Firstテナント向けサービスによる解決方針</h4>
+    <div class="solution-item">IoTデバイスとAI技術を活用したリアルタイム可視化</div>
+    <div class="solution-item">機械学習による高精度需要予測・在庫最適化</div>
+    <div class="solution-item">統合データプラットフォームによるデータサイロ解消</div>
+    <div class="solution-item">予測分析によるリスク早期発見・対応</div>
+
+    <h3>1.4 関連システムとの関係性</h3>
+    <div class="system-overview">
+      <p><strong>サービス提供者側システムとの関係：</strong></p>
+      <ul>
+        <li><strong>Core First 管理者サイト：</strong>本設計書の対象システムは、管理者サイトで認証されたテナントユーザーが利用</li>
+        <li><strong>認証連携：</strong>ログイン管理機能により、管理者サイトからCLO向けサイトへシームレスに遷移</li>
+        <li><strong>ライセンス制御：</strong>テナントのプラン（無料・Standard・Professional・Enterprise）に応じた機能制限</li>
+        <li><strong>ログ統合：</strong>テナント内の全操作ログは、管理者サイトの統合ログ管理機能で監視可能</li>
+      </ul>
+    </div>
+
+    <div style="border: none; border-top: 2px solid #bdc3c7; margin: 40px 0;"></div>
+
+    <h2>2. システム構成・アーキテクチャ</h2>
+
+    <h3>2.1 Core First サービス基盤アーキテクチャ概要</h3>
+
+    <div class="system-overview">
+      <p>
+        <strong>Core First サービス基盤：</strong>物流企業向け統合管理プラットフォームとして、管理者サイト（認証・テナント管理・ライセンス・ログ監視）とCLO向けサイト（AI分析・レポート・データ連携）の2層構造で設計。ログイン認証からCLO向け専門機能まで、シームレスな利用体験を提供します。
+      </p>
+    </div>
+
+    <h3>2.2 システム全体構成</h3>
+    <table class="architecture-table">
+      <thead>
+        <tr>
+          <th>サイト種別</th>
+          <th>主要機能</th>
+          <th>対象ユーザー</th>
+          <th>アクセス方法</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Core First 管理者サイト</td>
+          <td>ログイン管理、アカウント管理、ライセンス管理、ログ管理、データ管理</td>
+          <td>システム管理者、物流企業管理者</td>
+          <td>https://admin.corefirst.com</td>
+        </tr>
+        <tr>
+          <td>CLO向けサイト</td>
+          <td>AI分析、チャット・レポート、データ連携、予測分析</td>
+          <td>CLO、物流担当者、一般ユーザー</td>
+          <td>管理者サイトログイン後遷移</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>2.3 統合要件定義書対応</h3>
+    <div class="system-overview">
+      <p><strong>Core Firstサービス基盤は以下の5つの要件定義書に基づく統合システムです：</strong></p>
+      <ul>
+        <li><strong>ログイン管理機能:</strong> 認証・セッション管理・多要素認証</li>
+        <li><strong>アカウント管理機能:</strong> ユーザー管理・権限制御・組織階層管理</li>
+        <li><strong>ライセンス管理機能:</strong> プラン管理・課金処理・使用量制御</li>
+        <li><strong>ログ管理機能:</strong> 監査証跡・セキュリティ監視・コンプライアンス対応</li>
+        <li><strong>データアップロードとマッピング機能:</strong> データ統合・AI分析・レポート生成</li>
+      </ul>
+    </div>
+
+    <h3>2.4 Google Cloud Platform基盤構成</h3>
+    <table class="architecture-table">
+      <thead>
+        <tr>
+          <th>コンポーネント</th>
+          <th>サービス</th>
+          <th>役割</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>フロントエンド</td>
+          <td>Compute Engine</td>
+          <td>Core First管理者サイト・CLO向けサイト</td>
+        </tr>
+        <tr>
+          <td>AI・分析基盤</td>
+          <td>Vertex AI (Gemini API)</td>
+          <td>自然言語処理・予測分析・レポート生成</td>
+        </tr>
+        <tr>
+          <td>データウェアハウス</td>
+          <td>BigQuery</td>
+          <td>大規模データ分析・BI機能</td>
+        </tr>
+        <tr>
+          <td>データベース</td>
+          <td>Cloud SQL</td>
+          <td>ユーザーデータ・権限・ログ管理</td>
+        </tr>
+        <tr>
+          <td>決済処理</td>
+          <td>Stripe</td>
+          <td>カード決済・ライセンス管理</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>2.3 Core Firstサイト連携フロー</h3>
+    <div class="data-flow">
+      <p><strong>認証・画面遷移フロー</strong></p>
+      <p>Core First管理者サイト（ログイン・認証） → 権限確認・セッション生成 → CLO向けサイト遷移 → チュートリアルページ → 各機能画面</p>
+    </div>
+
+    <div class="data-flow">
+      <p><strong>データ処理フロー</strong></p>
+      <p>CSVアップロード（データマッピング機能） → データ検証・変換 → BigQuery格納 → AI分析処理 → 結果表示・レポート生成</p>
+    </div>
+
+    <h3>2.4 マルチテナント構成</h3>
+    <div class="note">
+      <strong>統合連携設計</strong><br>
+      ログイン機能・アカウント管理機能・ライセンス管理機能と連携し、ユーザー行動の完全な追跡可能性（トレーサビリティ）を実現。物流企業の内部統制・監査対応をワンストップでサポート。
+    </div>
+    
+    <div class="feature-box">
+      <h4>顧客別データ分離</h4>
+      <ul>
+        <li><strong>BigQuery：</strong>顧客単位でコンテナ作成（アップロードデータ、AI分析結果、チャット履歴等）</li>
+        <li><strong>Cloud SQL：</strong>顧客単位でスキーマ作成（ユーザー情報、権限、操作ログ等）</li>
+      </ul>
+    </div>
+
+    <div style="border: none; border-top: 2px solid #bdc3c7; margin: 40px 0;"></div>
+
+    <h2>3. 機能設計</h2>
+
+    <h3>3.1 Core First 管理者サイト機能</h3>
+
+    <div class="important">
+      <strong>管理者サイトの役割</strong><br>
+      Core First管理者サイトは、物流企業のシステム管理者が組織・ユーザー・ライセンス・セキュリティを統合管理するための基盤機能を提供します。
+    </div>
+
+    <div class="feature-box">
+      <h4>認証・ログイン管理機能</h4>
+      <ul>
+        <li><strong>統合認証基盤:</strong> ID・パスワード認証、2FA、SSO連携</li>
+        <li><strong>セッション管理:</strong> セキュアなセッション制御、自動ログアウト</li>
+        <li><strong>アカウントロックアウト:</strong> 段階的ロック機能（3回→5分、5回→15分、10回→24時間）</li>
+        <li><strong>パスワードポリシー:</strong> 複雑性要件、有効期限、履歴管理</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>テナント・アカウント管理機能</h4>
+      <ul>
+        <li><strong>企業テナント管理:</strong> 物流企業単位でのデータ完全分離</li>
+        <li><strong>組織階層管理:</strong> 本社・支店・営業所・配送センター構造</li>
+        <li><strong>ユーザー招待制:</strong> 管理者による招待メール送信、権限設定</li>
+        <li><strong>権限管理:</strong> スーパー管理者・管理者・部門管理者・一般ユーザーの階層</li>
+        <li><strong>一括ユーザー管理:</strong> CSV一括登録・権限変更（Standard以上）</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>ライセンス・プラン管理機能</h4>
+      <ul>
+        <li><strong>プラン制限管理:</strong> 無料・Standard・Professional・Enterprise</li>
+        <li><strong>使用量監視:</strong> ユーザー数・データ容量・AI分析回数の制限</li>
+        <li><strong>自動課金処理:</strong> Stripe連携による定額・従量課金</li>
+        <li><strong>制限超過対応:</strong> 自動アラート・機能制限・アップグレード促進</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>ログ管理・監査機能</h4>
+      <ul>
+        <li><strong>統合ログ管理:</strong> 認証・操作・システム・ビジネスログの一元管理</li>
+        <li><strong>リアルタイム監視:</strong> 異常検知・セキュリティアラート</li>
+        <li><strong>コンプライアンス対応:</strong> 監査証跡・長期保存（最大7年間）</li>
+        <li><strong>ダッシュボード:</strong> セキュリティ状況・システム稼働状況の可視化</li>
+      </ul>
+    </div>
+
+    <h3>3.2 CLO向けサイト機能</h3>
+
+    <div class="important">
+      <strong>CLO向けサイトの役割</strong><br>
+      Core First管理者サイトで認証されたユーザーが、物流・サプライチェーン管理の実務機能を利用するための専用サイトです。
+    </div>
+
+    <div class="feature-box">
+      <h4>チュートリアル・導入支援機能</h4>
+      <ul>
+        <li><strong>初回ログイン時のチュートリアル:</strong> Core First CLO向けサイトの機能説明</li>
+        <li><strong>ガイドツアー:</strong> 各機能の使い方をステップバイステップで説明</li>
+        <li><strong>サンプルデータ提供:</strong> 配送データ・在庫データのサンプルによる機能体験</li>
+        <li><strong>機能別ヘルプ:</strong> カテゴリ別AI分析・チャット・レポート機能の詳細説明</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>データアップロード・マッピング機能</h4>
+      <ul>
+        <li><strong>多様なファイル形式対応:</strong> CSV・Excel・JSON・XML・PDF・画像</li>
+        <li><strong>AI自動マッピング:</strong> 列名・データ内容からの自動フィールド判定</li>
+        <li><strong>テンプレート管理:</strong> 配送データ・在庫データ・顧客マスタの標準テンプレート</li>
+        <li><strong>リアルタイム処理監視:</strong> アップロード進捗・エラー詳細・修正提案</li>
+        <li><strong>データ品質チェック:</strong> バリデーション・正規化・変換処理</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>カテゴリ別AI分析機能</h4>
+      <ul>
+        <li><strong>積載効率改善:</strong> 配送車両の積載率最適化・混載配送提案</li>
+        <li><strong>庫内作業改善:</strong> 入出庫作業効率化・レイアウト最適化</li>
+        <li><strong>荷待ち時間短縮:</strong> 配送スケジュール最適化・待機時間削減</li>
+        <li><strong>配送ルート最適化:</strong> 最短ルート・燃料コスト削減・時間短縮</li>
+        <li><strong>需要予測・在庫最適化:</strong> 機械学習による需要予測・適正在庫計算</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>チャット・AI相談機能</h4>
+      <ul>
+        <li><strong>自然言語チャット:</strong> 物流に関する質問を自然な日本語で質問</li>
+        <li><strong>コンテキスト保持:</strong> 会話履歴を保持した継続的な相談</li>
+        <li><strong>専門知識支援:</strong> 物流・サプライチェーンの専門知識に基づく回答</li>
+        <li><strong>データ参照回答:</strong> アップロードデータを参照した具体的提案</li>
+        <li><strong>チャット履歴管理:</strong> 過去の相談内容検索・共有機能</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>レポート生成・管理機能</h4>
+      <ul>
+        <li><strong>自動レポート生成:</strong> AI分析結果の自動レポート化</li>
+        <li><strong>テンプレート活用:</strong> 経営層向け・現場向けレポートテンプレート</li>
+        <li><strong>スケジュール配信:</strong> 定期レポートの自動生成・メール配信</li>
+        <li><strong>カスタムレポート:</strong> ユーザー独自の条件指定レポート</li>
+        <li><strong>レポート共有:</strong> 部門・役職に応じた共有範囲設定</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>データ連携・統合機能</h4>
+      <ul>
+        <li><strong>外部システム連携:</strong> ERP・WMS・TMS・EDIシステムとのAPI連携</li>
+        <li><strong>リアルタイムデータ同期:</strong> 在庫・配送状況の自動更新</li>
+        <li><strong>IoTデバイス連携:</strong> GPS・センサーデータの自動取込</li>
+        <li><strong>データ変換機能:</strong> 各種フォーマット間の自動変換</li>
+        <li><strong>連携監視:</strong> データ連携状況の監視・エラー通知</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>マルチテナント対応</h4>
+      <table class="architecture-table">
+        <thead>
+          <tr>
+            <th>識別方法</th>
+            <th>実装方式</th>
+            <th>メリット</th>
+            <th>採用</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>サブドメイン方式</td>
+            <td>company.service.com</td>
+            <td>URLで企業を明確に識別、ブランディング効果</td>
+            <td>◎</td>
+          </tr>
+          <tr>
+            <td>パス方式</td>
+            <td>service.com/company</td>
+            <td>実装が簡単</td>
+            <td>△</td>
+          </tr>
+          <tr>
+            <td>ドメイン制限</td>
+            <td>会社メールドメインでの制限</td>
+            <td>セキュリティ向上</td>
+            <td>○</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="feature-box">
+      <h4>ダッシュボード機能</h4>
+      <ul>
+        <li><strong>利用状況ダッシュボード：</strong>AI分析カテゴリ別・ユーザー別利用頻度、データアップロード状況</li>
+        <li><strong>総合評価ダッシュボード：</strong>全データ統合分析による総合評価表示</li>
+      </ul>
+    </div>
+
+    <h3>3.3 テナント内ユーザー権限管理</h3>
+
+    <div class="important">
+      <strong>⚠️ 権限区分の明確化</strong><br>
+      本設計書で定義する権限は、<strong>テナント企業内の権限構造</strong>です。<br>
+      サービス提供者側の「システム管理者」とは異なりますのでご注意ください。
+    </div>
+
+    <h4>テナント内権限階層定義</h4>
+    <table class="architecture-table">
+      <thead>
+        <tr>
+          <th>権限レベル</th>
+          <th>対象者</th>
+          <th>主要権限</th>
+          <th>制限事項</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background-color: #fff3e0;">
+          <td><strong>テナント管理者<br>（スーパー管理者）</strong></td>
+          <td>テナント企業の初回登録者・指名された者</td>
+          <td>テナント内全権限、他管理者の任命・解任、プラン変更・課金管理</td>
+          <td>他テナントへのアクセス不可。重要操作は2名承認必要</td>
+        </tr>
+        <tr>
+          <td><strong>テナント副管理者<br>（管理者）</strong></td>
+          <td>テナント管理者により任命された者</td>
+          <td>テナント内ユーザー管理、基本設定変更、データ管理</td>
+          <td>課金・プラン変更は不可</td>
+        </tr>
+        <tr>
+          <td><strong>部門管理者</strong></td>
+          <td>部門・支店・営業所単位での管理権限者</td>
+          <td>担当部門内ユーザーのみ管理可能、部門データ管理</td>
+          <td>他部門への影響なし、全社設定変更不可</td>
+        </tr>
+        <tr>
+          <td><strong>一般ユーザー</strong></td>
+          <td>招待されたメンバー</td>
+          <td>CLO向けサイト基本機能利用のみ</td>
+          <td>管理機能へのアクセス不可、データ閲覧のみ</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>サービス提供者側との権限区分</h4>
+    <table class="architecture-table">
+      <thead>
+        <tr>
+          <th>システム種別</th>
+          <th>権限区分</th>
+          <th>管理対象</th>
+          <th>アクセス範囲</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background-color: #fff3e0;">
+          <td><strong>サービス提供者側</strong></td>
+          <td>システム管理者<br>運用管理者<br>カスタマーサクセス</td>
+          <td>全テナント統合管理<br>システム全体監視<br>課金・請求管理</td>
+          <td>全テナント横断アクセス可能</td>
+        </tr>
+        <tr style="background-color: #e3f2fd;">
+          <td><strong>サービス利用者側<br>（本設計書）</strong></td>
+          <td>テナント管理者<br>テナント副管理者<br>部門管理者<br>一般ユーザー</td>
+          <td>自社テナント内のみ管理<br>自社データ・ユーザー管理</td>
+          <td>自社テナント内のみアクセス可能</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>3.3 AI機能詳細設計</h3>
+
+    <div class="feature-box">
+      <h4>カテゴリ別AI分析</h4>
+      <p>事前設定プロンプト枠をメニュー化：</p>
+      <ul>
+        <li>積載効率改善</li>
+        <li>庫内作業改善</li>
+        <li>荷待ち時間短縮</li>
+        <li>配送ルート最適化</li>
+        <li>需要予測・在庫最適化</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>データ連携機能</h4>
+      <ul>
+        <li>カテゴリ別必要データ定義（在庫データ、入荷実績、出荷実績等）</li>
+        <li>CSVファイルマッピング取込機能</li>
+        <li>データ品質チェック・バリデーション</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>チャット・レポート機能</h4>
+      <ul>
+        <li>自然言語によるチャット形式質問応答</li>
+        <li>メンバー間チャット共有機能</li>
+        <li>条件指定レポート自動生成</li>
+        <li>過去レポート参照・共有機能</li>
+        <li>機械化・ソリューション提案（社内ソリューション含む）</li>
+      </ul>
+    </div>
+
+    <h3>3.4 社内管理向けWebアプリケーション機能</h3>
+
+    <div class="feature-box">
+      <h4>顧客管理機能</h4>
+      <ul>
+        <li>顧客情報一覧・詳細表示</li>
+        <li>ライセンス状況・利用状況監視</li>
+        <li>課金・支払い状況管理</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>マーケティング機能</h4>
+      <ul>
+        <li>営業内容登録・管理</li>
+        <li>利用状況分析による自動メール配信</li>
+        <li>顧客セグメント別マーケティング</li>
+      </ul>
+    </div>
+
+    <div style="border: none; border-top: 2px solid #bdc3c7; margin: 40px 0;"></div>
+
+    <h2>4. 画面設計</h2>
+
+    <h3>4.1 Core First 管理者サイトページ</h3>
+
+    <div class="screen-design">
+      <h4>管理者サイト: ログイン画面</h4>
+      <div style="border: 2px solid #ccc; padding: 15px; margin: 10px 0; background-color: #f9f9f9;">
+        <div style="text-align: center; background-color: #2c3e50; color: white; padding: 15px; margin-bottom: 20px;">
+          <strong>Core First 管理者サイト - ログイン</strong>
+        </div>
+        
+        <div style="max-width: 400px; margin: 0 auto; padding: 30px; border: 1px solid #ddd; background-color: white;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h3>物流企業向け統合管理基盤</h3>
+            <p style="color: #666;">Core First Management Console</p>
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: bold;">企業ドメイン</label>
+            <input type="text" placeholder="your-company.corefirst.com" style="width: 100%; padding: 10px; border: 1px solid #ddd;">
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: bold;">メールアドレス</label>
+            <input type="email" placeholder="admin@your-company.com" style="width: 100%; padding: 10px; border: 1px solid #ddd;">
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: bold;">パスワード</label>
+            <input type="password" placeholder="8文字以上の複雑なパスワード" style="width: 100%; padding: 10px; border: 1px solid #ddd;">
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <label style="font-size: 14px;">
+              <input type="checkbox"> ログイン状態を保持する
+            </label>
+          </div>
+          
+          <button style="width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; font-size: 16px; margin-bottom: 15px;">ログイン</button>
+          
+          <div style="text-align: center; font-size: 12px; color: #666;">
+            <a href="#" style="color: #007bff;">パスワードを忘れた場合</a> | 
+            <a href="#" style="color: #007bff;">新規登録</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>4.2 CLO向けサイトページ</h3>
+
+    <div class="screen-design">
+      <h4>CLO向けサイト: チュートリアル・トップページ</h4>
+      <div style="border: 2px solid #ccc; padding: 15px; margin: 10px 0; background-color: #f9f9f9;">
+        <div style="text-align: center; background-color: #2c3e50; color: white; padding: 10px; margin-bottom: 15px;">
+          <strong>Core First CLO向けサイト - チュートリアル</strong>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2>物流・サプライチェーン管理へようこそ</h2>
+          <p style="font-size: 18px; color: #666;">AIを活用した高度な分析で、物流効率を最大化しましょう</p>
+        </div>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 30px;">
+          <div style="flex: 1; min-width: 200px; border: 1px solid #ddd; padding: 20px; text-align: center; background-color: white;">
+            <div style="font-size: 48px; margin-bottom: 15px;">📊</div>
+            <h4>カテゴリ別AI分析</h4>
+            <p style="font-size: 14px; color: #666;">積載効率、庫内作業、配送ルートなど、5つのカテゴリで専門的な分析を実施</p>
+            <button style="padding: 8px 16px; background-color: #28a745; color: white; border: none; margin-top: 10px;">分析を開始</button>
+          </div>
+          
+          <div style="flex: 1; min-width: 200px; border: 1px solid #ddd; padding: 20px; text-align: center; background-color: white;">
+            <div style="font-size: 48px; margin-bottom: 15px;">💬</div>
+            <h4>チャット・レポート</h4>
+            <p style="font-size: 14px; color: #666;">自然言語でAIに質問し、カスタムレポートを自動生成</p>
+            <button style="padding: 8px 16px; background-color: #007bff; color: white; border: none; margin-top: 10px;">チャット開始</button>
+          </div>
+          
+          <div style="flex: 1; min-width: 200px; border: 1px solid #ddd; padding: 20px; text-align: center; background-color: white;">
+            <div style="font-size: 48px; margin-bottom: 15px;">📤</div>
+            <h4>データ連携</h4>
+            <p style="font-size: 14px; color: #666;">CSV・Excel等のデータアップロード、AI自動マッピング機能</p>
+            <button style="padding: 8px 16px; background-color: #ffc107; color: black; border: none; margin-top: 10px;">データ連携</button>
+          </div>
+        </div>
+        
+        <div style="background-color: #e3f2fd; padding: 20px; border-left: 4px solid #2196f3;">
+          <h4>🚀 はじめてのご利用ですか？</h4>
+          <p>サンプルデータを使って、すぐに機能を体験できます。</p>
+          <button style="padding: 10px 20px; background-color: #2196f3; color: white; border: none;">サンプルデータで体験</button>
+          <button style="padding: 10px 20px; background-color: white; color: #2196f3; border: 1px solid #2196f3; margin-left: 10px;">ガイドツアー開始</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-design">
+      <h4>CLO向けサイト: メインダッシュボード画面</h4>
+      <div style="border: 2px solid #ccc; padding: 15px; margin: 10px 0; background-color: #f9f9f9;">
+        <div style="text-align: center; background-color: #2c3e50; color: white; padding: 10px; margin-bottom: 15px;">
+          <strong>CLO向け SaaSプラットフォーム - メインダッシュボード</strong>
+        </div>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+          <div style="flex: 1; min-width: 200px; background-color: #3498db; color: white; padding: 15px; text-align: center;">
+            <h5>物流効率指標</h5>
+            <div style="font-size: 24px; font-weight: bold;">95.2%</div>
+          </div>
+          <div style="flex: 1; min-width: 200px; background-color: #27ae60; color: white; padding: 15px; text-align: center;">
+            <h5>コスト削減効果</h5>
+            <div style="font-size: 24px; font-weight: bold;">¥12.5M</div>
+          </div>
+          <div style="flex: 1; min-width: 200px; background-color: #e74c3c; color: white; padding: 15px; text-align: center;">
+            <h5>予測精度</h5>
+            <div style="font-size: 24px; font-weight: bold;">97.8%</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+          <div style="flex: 2; border: 1px solid #ddd; padding: 10px;">
+            <h5>リアルタイム監視</h5>
+            <ul style="list-style: none; padding: 0;">
+              <li>✅ 在庫状況: 正常</li>
+              <li>⚠️ 配送遅延: 3件</li>
+              <li>🔴 アラート: 緊急対応要</li>
+            </ul>
+          </div>
+          <div style="flex: 1; border: 1px solid #ddd; padding: 10px;">
+            <h5>クイックアクション</h5>
+            <button style="width: 100%; margin: 5px 0; padding: 8px; background-color: #007bff; color: white; border: none;">需要予測分析</button>
+            <button style="width: 100%; margin: 5px 0; padding: 8px; background-color: #28a745; color: white; border: none;">レポート作成</button>
+            <button style="width: 100%; margin: 5px 0; padding: 8px; background-color: #ffc107; color: black; border: none;">AI相談</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-design">
+      <h4>ページ2: AI分析・チャット画面</h4>
+      <div style="border: 2px solid #ccc; padding: 15px; margin: 10px 0; background-color: #f9f9f9;">
+        <div style="text-align: center; background-color: #2c3e50; color: white; padding: 10px; margin-bottom: 15px;">
+          <strong>AI分析・チャット機能</strong>
+        </div>
+        
+        <div style="border-bottom: 1px solid #ddd; margin-bottom: 15px;">
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button style="padding: 8px 15px; background-color: #007bff; color: white; border: none;">積載効率改善</button>
+            <button style="padding: 8px 15px; background-color: #6c757d; color: white; border: none;">庫内作業改善</button>
+            <button style="padding: 8px 15px; background-color: #6c757d; color: white; border: none;">荷待ち時間短縮</button>
+            <button style="padding: 8px 15px; background-color: #6c757d; color: white; border: none;">配送最適化</button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+          <div style="flex: 1; border: 1px solid #ddd; padding: 10px;">
+            <h5>データアップロード</h5>
+            <div style="border: 2px dashed #ccc; padding: 20px; text-align: center; margin-bottom: 10px;">
+              <p>CSVファイルをドラッグ&amp;ドロップ</p>
+              <button style="padding: 8px 15px; background-color: #28a745; color: white; border: none;">ファイル選択</button>
+            </div>
+            <div style="font-size: 12px; color: #666;">
+              <p>必要データ: 積載データ、車両情報、配送ルート情報</p>
+            </div>
+          </div>
+
+          <div style="flex: 2; border: 1px solid #ddd; padding: 10px;">
+            <h5>AIチャット</h5>
+            <div style="height: 200px; background-color: #fff; border: 1px solid #ddd; margin-bottom: 10px; padding: 10px; overflow-y: auto;">
+              <div style="margin-bottom: 10px;">
+                <div style="background-color: #e3f2fd; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
+                  <strong>あなた:</strong> 積載効率を改善する方法を教えてください
+                </div>
+                <div style="background-color: #f1f8e9; padding: 8px; border-radius: 5px;">
+                  <strong>AI:</strong> アップロードいただいたデータを分析した結果、以下の改善提案があります：<br>
+                  1. 混載配送の最適化により15%効率向上<br>
+                  2. ルート統合により燃料コスト12%削減<br>
+                  3. 積み込み順序最適化により作業時間20%短縮
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 5px;">
+              <input type="text" placeholder="質問を入力してください..." style="flex: 1; padding: 8px; border: 1px solid #ddd;">
+              <button style="padding: 8px 15px; background-color: #007bff; color: white; border: none;">送信</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-design">
+      <h4>CLO向けサイト: データ連携・マッピング画面</h4>
+      <div style="border: 2px solid #ccc; padding: 15px; margin: 10px 0; background-color: #f9f9f9;">
+        <div style="text-align: center; background-color: #2c3e50; color: white; padding: 10px; margin-bottom: 15px;">
+          <strong>データアップロード・マッピング機能</strong>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+          <div style="flex: 1; border: 1px solid #ddd; padding: 15px; background-color: white;">
+            <h5>📤 ファイルアップロード</h5>
+            <div style="border: 2px dashed #007bff; padding: 30px; text-align: center; margin-bottom: 15px; background-color: #f8f9ff;">
+              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+              <p><strong>ファイルをドラッグ&amp;ドロップ</strong></p>
+              <p style="font-size: 12px; color: #666;">または</p>
+              <button style="padding: 8px 16px; background-color: #007bff; color: white; border: none;">ファイルを選択</button>
+            </div>
+            
+            <div style="font-size: 12px; color: #666; margin-bottom: 15px;">
+              <p><strong>対応形式:</strong> CSV, Excel, JSON, XML, PDF, 画像</p>
+              <p><strong>最大サイズ:</strong> 500MB (Standardプラン)</p>
+            </div>
+
+            <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px;">
+              <h6>✅ アップロード済みファイル</h6>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0;">
+                <span style="font-size: 12px;">📄 delivery_data.csv (2.3MB)</span>
+                <button style="padding: 2px 8px; background-color: #28a745; color: white; border: none; font-size: 10px;">処理開始</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex: 2; border: 1px solid #ddd; padding: 15px; background-color: white;">
+            <h5>🔄 AIマッピング設定</h5>
+            
+            <div style="margin-bottom: 15px;">
+              <label style="margin-right: 15px;"><input type="radio" name="mapping" checked=""> AI自動マッピング</label>
+              <label style="margin-right: 15px;"><input type="radio" name="mapping"> 手動マッピング</label>
+              <label><input type="radio" name="mapping"> テンプレート使用</label>
+            </div>
+            
+            <div style="border: 1px solid #ddd; margin-bottom: 15px;">
+              <div style="display: flex; background-color: #f8f9fa; padding: 8px; font-weight: bold; font-size: 12px;">
+                <div style="flex: 2;">アップロード列</div>
+                <div style="flex: 2;">→ システム項目</div>
+                <div style="flex: 1;">信頼度</div>
+                <div style="flex: 1;">承認</div>
+              </div>
+              <div style="display: flex; padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">
+                <div style="flex: 2;">配送番号</div>
+                <div style="flex: 2;">→ delivery_no</div>
+                <div style="flex: 1; color: #28a745;">98%</div>
+                <div style="flex: 1;">☑️</div>
+              </div>
+              <div style="display: flex; padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">
+                <div style="flex: 2;">お客様名</div>
+                <div style="flex: 2;">→ customer_name</div>
+                <div style="flex: 1; color: #28a745;">95%</div>
+                <div style="flex: 1;">☑️</div>
+              </div>
+              <div style="display: flex; padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px;">
+                <div style="flex: 2;">配達日</div>
+                <div style="flex: 2;">→ delivery_date</div>
+                <div style="flex: 1; color: #ffc107;">85%</div>
+                <div style="flex: 1;">⚠️</div>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+              <button style="padding: 8px 16px; background-color: #007bff; color: white; border: none;">プレビュー実行</button>
+              <button style="padding: 8px 16px; background-color: #28a745; color: white; border: none;">マッピング実行</button>
+              <button style="padding: 8px 16px; background-color: #6c757d; color: white; border: none;">テンプレート保存</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    <div class="screen-design">
+      <h4>CLO向けサイト: データ連携・統合管理画面</h4>
+      <div style="border: 2px solid #ccc; padding: 15px; margin: 10px 0; background-color: #f9f9f9;">
+        <div style="text-align: center; background-color: #2c3e50; color: white; padding: 10px; margin-bottom: 15px;">
+          <strong>データ連携・統合管理</strong>
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+          <div style="flex: 1; border: 1px solid #ddd; padding: 15px; background-color: white;">
+            <h5>🔗 外部システム連携状況</h5>
+            
+            <div style="margin-bottom: 15px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; margin-bottom: 5px;">
+                <div>
+                  <strong>ERP System</strong><br>
+                  <small style="color: #666;">SAP ERP - 在庫・受発注データ</small>
+                </div>
+                <div style="color: #28a745; font-weight: bold;">●</div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; margin-bottom: 5px;">
+                <div>
+                  <strong>WMS System</strong><br>
+                  <small style="color: #666;">倉庫管理 - 入出庫・在庫データ</small>
+                </div>
+                <div style="color: #28a745; font-weight: bold;">●</div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; margin-bottom: 5px;">
+                <div>
+                  <strong>TMS System</strong><br>
+                  <small style="color: #666;">配送管理 - 配送計画・実績</small>
+                </div>
+                <div style="color: #ffc107; font-weight: bold;">◐</div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; margin-bottom: 5px;">
+                <div>
+                  <strong>IoT センサー</strong><br>
+                  <small style="color: #666;">GPS・温度・湿度センサー</small>
+                </div>
+                <div style="color: #e74c3c; font-weight: bold;">×</div>
+              </div>
+            </div>
+            
+            <button style="width: 100%; padding: 10px; background-color: #007bff; color: white; border: none;">新規連携設定</button>
+          </div>
+
+          <div style="flex: 2; border: 1px solid #ddd; padding: 15px; background-color: white;">
+            <h5>📊 データ同期状況・統計</h5>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+              <div style="flex: 1; min-width: 120px; text-align: center; padding: 15px; border: 1px solid #ddd;">
+                <div style="font-size: 24px; font-weight: bold; color: #28a745;">1,234</div>
+                <div style="font-size: 12px; color: #666;">今日の同期件数</div>
+              </div>
+              <div style="flex: 1; min-width: 120px; text-align: center; padding: 15px; border: 1px solid #ddd;">
+                <div style="font-size: 24px; font-weight: bold; color: #007bff;">98.5%</div>
+                <div style="font-size: 12px; color: #666;">データ品質スコア</div>
+              </div>
+              <div style="flex: 1; min-width: 120px; text-align: center; padding: 15px; border: 1px solid #ddd;">
+                <div style="font-size: 24px; font-weight: bold; color: #ffc107;">2</div>
+                <div style="font-size: 12px; color: #666;">エラー件数</div>
+              </div>
+            </div>
+
+            <div style="border: 1px solid #ddd; margin-bottom: 15px;">
+              <div style="display: flex; background-color: #f8f9fa; padding: 8px; font-weight: bold; font-size: 12px;">
+                <div style="flex: 2;">データソース</div>
+                <div style="flex: 1;">最終同期</div>
+                <div style="flex: 1;">ステータス</div>
+                <div style="flex: 1;">操作</div>
+              </div>
+              <div style="display: flex; padding: 8px; border-bottom: 1px solid #eee; font-size: 11px;">
+                <div style="flex: 2;">配送実績データ</div>
+                <div style="flex: 1;">5分前</div>
+                <div style="flex: 1; color: #28a745;">正常</div>
+                <div style="flex: 1;"><button style="padding: 2px 6px; background-color: #6c757d; color: white; border: none; font-size: 10px;">詳細</button></div>
+              </div>
+              <div style="display: flex; padding: 8px; border-bottom: 1px solid #eee; font-size: 11px;">
+                <div style="flex: 2;">在庫マスタ</div>
+                <div style="flex: 1;">15分前</div>
+                <div style="flex: 1; color: #28a745;">正常</div>
+                <div style="flex: 1;"><button style="padding: 2px 6px; background-color: #6c757d; color: white; border: none; font-size: 10px;">詳細</button></div>
+              </div>
+              <div style="display: flex; padding: 8px; border-bottom: 1px solid #eee; font-size: 11px;">
+                <div style="flex: 2;">センサーデータ</div>
+                <div style="flex: 1;">エラー</div>
+                <div style="flex: 1; color: #e74c3c;">接続失敗</div>
+                <div style="flex: 1;"><button style="padding: 2px 6px; background-color: #e74c3c; color: white; border: none; font-size: 10px;">修復</button></div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <button style="padding: 8px 16px; background-color: #28a745; color: white; border: none;">手動同期実行</button>
+              <button style="padding: 8px 16px; background-color: #007bff; color: white; border: none;">同期設定</button>
+              <button style="padding: 8px 16px; background-color: #ffc107; color: black; border: none;">エラーログ</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px;">
+          <strong>⚠️ 注意事項</strong><br>
+          <ul style="font-size: 12px; margin: 10px 0 0 20px;">
+            <li>データ連携は5分間隔で自動実行されます</li>
+            <li>大容量データの同期は営業時間外に実行することを推奨します</li>
+            <li>エラーが発生した場合は自動でリトライが実行されます（最大3回）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-design">
+      <h4>CLO向けサイト: レポート管理画面</h4>
+      <div style="border: 2px solid #ccc; padding: 15px; margin: 10px 0; background-color: #f9f9f9;">
+        <div style="text-align: center; background-color: #2c3e50; color: white; padding: 10px; margin-bottom: 15px;">
+          <strong>レポート管理・ライセンス管理</strong>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+          <div style="flex: 2; border: 1px solid #ddd; padding: 10px;">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
+              <h5>作成済みレポート一覧</h5>
+              <button style="padding: 5px 10px; background-color: #28a745; color: white; border: none;">新規作成</button>
+            </div>
+            
+            <div style="border: 1px solid #ddd;">
+              <div style="display: flex; background-color: #f8f9fa; padding: 8px; font-weight: bold;">
+                <div style="flex: 2;">レポート名</div>
+                <div style="flex: 1;">カテゴリ</div>
+                <div style="flex: 1;">作成日</div>
+                <div style="flex: 1;">操作</div>
+              </div>
+              <div style="display: flex; padding: 8px; border-bottom: 1px solid #eee;">
+                <div style="flex: 2;">積載効率改善レポート_2024Q3</div>
+                <div style="flex: 1;">積載効率</div>
+                <div style="flex: 1;">2024/09/15</div>
+                <div style="flex: 1;">
+                  <button style="padding: 2px 8px; background-color: #007bff; color: white; border: none; font-size: 12px;">表示</button>
+                  <button style="padding: 2px 8px; background-color: #28a745; color: white; border: none; font-size: 12px;">共有</button>
+                </div>
+              </div>
+              <div style="display: flex; padding: 8px; border-bottom: 1px solid #eee;">
+                <div style="flex: 2;">配送ルート最適化分析</div>
+                <div style="flex: 1;">配送最適化</div>
+                <div style="flex: 1;">2024/09/12</div>
+                <div style="flex: 1;">
+                  <button style="padding: 2px 8px; background-color: #007bff; color: white; border: none; font-size: 12px;">表示</button>
+                  <button style="padding: 2px 8px; background-color: #28a745; color: white; border: none; font-size: 12px;">共有</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex: 1; border: 1px solid #ddd; padding: 10px;">
+            <h5>ライセンス管理</h5>
+            <div style="margin-bottom: 15px; padding: 10px; background-color: #fff; border: 1px solid #ddd;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>現在のプラン:</span>
+                <strong>Professional</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>ユーザー数:</span>
+                <span>8/10</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span>次回更新:</span>
+                <span>2024/12/01</span>
+              </div>
+              <button style="width: 100%; padding: 8px; background-color: #ffc107; color: black; border: none;">プラン変更</button>
+            </div>
+
+            <h5>ユーザー管理</h5>
+            <div style="margin-bottom: 10px;">
+              <input type="email" placeholder="招待するメールアドレス" style="width: 100%; padding: 5px; margin-bottom: 5px;">
+              <select style="width: 100%; padding: 5px; margin-bottom: 5px;">
+                <option>管理者権限</option>
+                <option>一般ユーザー</option>
+                <option>閲覧のみ</option>
+              </select>
+              <button style="width: 100%; padding: 8px; background-color: #007bff; color: white; border: none;">招待送信</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>4.3 Core First サービス基盤画面構成</h3>
+
+    <div class="screen-design">
+      <h4>管理者サイト主要画面</h4>
+      <ul>
+        <li><strong>ログイン画面：</strong>企業ドメイン・メールアドレス・パスワード認証</li>
+        <li><strong>管理ダッシュボード：</strong>テナント状況・ライセンス・ログ監視</li>
+        <li><strong>ユーザー管理画面：</strong>招待・権限設定・組織階層管理</li>
+        <li><strong>ライセンス管理画面：</strong>プラン・課金・使用量制限管理</li>
+        <li><strong>CLO向けサイト遷移：</strong>ログイン後の自動遷移ボタン</li>
+      </ul>
+    </div>
+
+    <div class="screen-design">
+      <h4>CLO向けサイト主要画面</h4>
+      <ul>
+        <li><strong>チュートリアル画面：</strong>初回ログイン時のガイドツアー・機能説明</li>
+        <li><strong>ダッシュボード画面：</strong>KPI表示・リアルタイム監視・クイックアクション</li>
+        <li><strong>AI分析画面：</strong>カテゴリ別分析・チャット・結果表示</li>
+        <li><strong>データ連携画面：</strong>アップロード・マッピング・外部システム連携</li>
+        <li><strong>レポート管理画面：</strong>レポート一覧・作成・共有・ダウンロード</li>
+      </ul>
+    </div>
+
+    <h3>4.3 ユーザーインターフェース設計方針</h3>
+    <ul class="requirement-list">
+      <li>直感的操作を重視したシンプルなUI設計</li>
+      <li>レスポンシブデザイン対応（PC・タブレット・スマートフォン）</li>
+      <li>アクセシビリティ対応（WCAG 2.1 AA準拠）</li>
+      <li>多言語対応準備（日本語・英語）</li>
+      <li>ダークモード対応</li>
+    </ul>
+
+    <div style="border: none; border-top: 2px solid #bdc3c7; margin: 40px 0;"></div>
+
+    <h2>5. プラン・ライセンス管理（テナント視点）</h2>
+
+    <div class="note">
+      <strong>📌 ライセンス管理の視点</strong><br>
+      本セクションは<strong>サービス利用者（テナント）視点</strong>でのプラン・ライセンス管理を記述しています。<br>
+      テナント管理者は、自社のプラン確認・変更リクエスト・使用量監視を実施できます。<br>
+      <strong>サービス提供者側</strong>の全テナント横断的なライセンス管理は、別文書「Core First 管理者サイト 要件定義兼システム設計書」で定義されています。
+    </div>
+
+    <h3>5.1 テナント向けプラン制限</h3>
+    <table class="architecture-table">
+      <thead>
+        <tr>
+          <th>制限項目</th>
+          <th>無料プラン</th>
+          <th>Standard</th>
+          <th>Professional</th>
+          <th>Enterprise</th>
+          <th>制限超過時の動作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>利用期間</td>
+          <td>30日間</td>
+          <td>無制限</td>
+          <td>無制限</td>
+          <td>無制限</td>
+          <td>機能制限・アップグレード促進</td>
+        </tr>
+        <tr>
+          <td>ユーザー数</td>
+          <td>10名まで</td>
+          <td>50名まで</td>
+          <td>200名まで</td>
+          <td>無制限</td>
+          <td>新規招待不可・警告表示</td>
+        </tr>
+        <tr>
+          <td>データ容量</td>
+          <td>1GB</td>
+          <td>50GB</td>
+          <td>500GB</td>
+          <td>無制限</td>
+          <td>新規データ作成不可</td>
+        </tr>
+        <tr>
+          <td>AI分析回数</td>
+          <td>月100回</td>
+          <td>月1,000回</td>
+          <td>月10,000回</td>
+          <td>無制限</td>
+          <td>制限到達時は翌月まで利用不可</td>
+        </tr>
+        <tr>
+          <td>サポート</td>
+          <td>メールのみ</td>
+          <td>メール・チャット</td>
+          <td>優先サポート</td>
+          <td>専任サポート</td>
+          <td>サポート制限</td>
+        </tr>
+        <tr>
+          <td>API利用</td>
+          <td>なし</td>
+          <td>制限あり</td>
+          <td>標準</td>
+          <td>無制限</td>
+          <td>APIアクセス不可</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>5.2 プラン詳細仕様</h3>
+
+    <div class="feature-box">
+      <h4>無料プラン（Free）</h4>
+      <ul>
+        <li>対象：サービス評価・小規模チーム</li>
+        <li>利用期間：30日間の試用期間</li>
+        <li>ユーザー数：10名まで</li>
+        <li>機能：基本的なログイン・ユーザー管理機能のみ</li>
+        <li>サポート：メールサポートのみ（回答48時間以内）</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>Standardプラン</h4>
+      <ul>
+        <li>対象：中小物流企業・単一事業所での利用</li>
+        <li>ユーザー数：50名まで</li>
+        <li>機能：基本機能 + SSO連携（Googleのみ）</li>
+        <li>API：月間1,000リクエストまで</li>
+        <li>サポート：メール・チャットサポート（回答24時間以内）</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>Professionalプラン</h4>
+      <ul>
+        <li>対象：中規模物流企業・複数事業所での利用</li>
+        <li>ユーザー数：200名まで</li>
+        <li>機能：全標準機能 + 高度なセキュリティ機能</li>
+        <li>SSO：Google, Microsoft Azure AD, Okta対応</li>
+        <li>API：月間10,000リクエストまで</li>
+        <li>サポート：優先サポート（回答12時間以内）</li>
+      </ul>
+    </div>
+
+    <div class="feature-box">
+      <h4>Enterpriseプラン</h4>
+      <ul>
+        <li>対象：大手物流企業・全国展開企業</li>
+        <li>ユーザー数：無制限</li>
+        <li>機能：全機能 + カスタム開発対応</li>
+        <li>SSO：SAML 2.0, LDAP, Active Directory対応</li>
+        <li>API：無制限利用</li>
+        <li>サポート：専任サポート（回答4時間以内）</li>
+        <li>SLA：99.95%稼働保証</li>
+      </ul>
+    </div>
+
+    <div style="border: none; border-top: 2px solid #bdc3c7; margin: 40px 0;"></div>
+
+    <h2>6. 非機能要件</h2>
+
+    <h3>6.1 可用性・パフォーマンス要件</h3>
+
+    <table class="sla-table">
+      <thead>
+        <tr>
+          <th>プラン</th>
+          <th>可用性目標</th>
+          <th>年間ダウンタイム</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>無料プラン</td>
+          <td>99.0%</td>
+          <td>約87時間</td>
+        </tr>
+        <tr>
+          <td>有料プラン</td>
+          <td>99.5%</td>
+          <td>約43時間</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="feature-box">
+      <h4>パフォーマンス要件</h4>
+      <ul>
+        <li>同時接続ユーザー数：100ユーザー</li>
+        <li>応答時間：3秒以内（AI連携・データアップロード機能除く）</li>
+        <li>スケーラビリティ：利用拡大に応じた柔軟な拡張対応</li>
+      </ul>
+    </div>
+
+    <h3>5.2 セキュリティ要件</h3>
+    
+    <h4>認証・認可</h4>
+    <table class="architecture-table">
+      <thead>
+        <tr>
+          <th>機能</th>
+          <th>仕様</th>
+          <th>優先度</th>
+          <th>備考</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ID・パスワード認証</td>
+          <td>メールアドレス + パスワード</td>
+          <td>高</td>
+          <td>基本認証方式</td>
+        </tr>
+        <tr>
+          <td>パスワードハッシュ化</td>
+          <td>bcrypt または Argon2 使用</td>
+          <td>高</td>
+          <td>セキュリティ要件</td>
+        </tr>
+        <tr>
+          <td>二段階認証（2FA）</td>
+          <td>SMS、認証アプリ（Google Authenticator等）</td>
+          <td>中</td>
+          <td>Plus以上のプランで対応</td>
+        </tr>
+        <tr>
+          <td>SSO対応</td>
+          <td>Google Workspace、Azure AD、SAML 2.0</td>
+          <td>中</td>
+          <td>エンタープライズ向け</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>パスワードポリシー</h4>
+    <table class="architecture-table">
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>要件</th>
+          <th>対象プラン</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>最小文字数</td>
+          <td>8文字以上（推奨12文字以上）</td>
+          <td>全プラン</td>
+        </tr>
+        <tr>
+          <td>文字種組み合わせ</td>
+          <td>英大文字・小文字・数字・記号の3種類以上</td>
+          <td>全プラン</td>
+        </tr>
+        <tr>
+          <td>パスワード有効期限</td>
+          <td>90日間（Professional以上で設定可能）</td>
+          <td>Professional以上</td>
+        </tr>
+        <tr>
+          <td>パスワード履歴</td>
+          <td>過去12回分の再利用禁止</td>
+          <td>Standard以上</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>アクセス制御・監査</h4>
+    <ul class="requirement-list">
+      <li>通信暗号化：TLS 1.3以上</li>
+      <li>データ暗号化：保存時・転送時ともAES-256</li>
+      <li>アクセス制御：ロールベースアクセス制御（RBAC）</li>
+      <li>IPアドレス制限：指定IP範囲からのみアクセス許可（Professional以上）</li>
+      <li>監査ログ：全操作の詳細ログ記録・保管</li>
+      <li>アカウントロックアウト：5回失敗で15分間ロック</li>
+    </ul>
+
+    <h3>6.3 データ保護・コンプライアンス</h3>
+    <ul class="requirement-list">
+      <li>国際標準：ISO/IEC 27001（ISMS）準拠</li>
+      <li>国内法令：個人情報保護法対応</li>
+      <li>データ主権：国内データセンター利用</li>
+      <li>データ保持期間：契約終了後3ヶ月でデータ完全削除</li>
+    </ul>
+
+    <div style="border: none; border-top: 2px solid #bdc3c7; margin: 40px 0;"></div>
+
+    <h2>7. 運用設計</h2>
+
+    <h3>7.1 監視・障害対応</h3>
+    <div class="feature-box">
+      <h4>監視体制</h4>
+      <ul>
+        <li>営業時間監視（平日9:00-18:00）</li>
+        <li>システム自動監視（24時間365日）</li>
+        <li>自動復旧機能（可能な範囲）</li>
+        <li>エスカレーション体制（重要度別）</li>
+      </ul>
+    </div>
+
+    <h3>7.2 データ管理・バックアップ</h3>
+    <div class="feature-box">
+      <h4>バックアップ方針</h4>
+      <ul>
+        <li>バックアップ頻度：日次自動バックアップ</li>
+        <li>保管期間：3ヶ月間</li>
+        <li>復旧時間目標（RTO）：4時間以内</li>
+        <li>復旧ポイント目標（RPO）：24時間以内</li>
+        <li>容量制限：プラン別容量制限あり</li>
+      </ul>
+    </div>
+
+    <h3>7.3 サポート体制</h3>
+    <ul class="requirement-list">
+      <li>チケットシステム：問い合わせ管理・追跡機能</li>
+      <li>FAQ：よくある質問・回答データベース</li>
+      <li>チャットボット：基本的な問い合わせ自動対応</li>
+      <li>サポート時間：平日9:00-18:00（メール・チケット）</li>
+      <li>緊急対応：重要度Highの場合は時間外対応</li>
+    </ul>
+
+    <h3>7.4 顧客・ライセンス管理運用</h3>
+    <div class="feature-box">
+      <h4>自動化機能</h4>
+      <ul>
+        <li>完全自動セルフサービス（標準プラン）</li>
+        <li>管理者承認フロー（エンタープライズプラン）</li>
+        <li>要件・規模に応じた手動対応</li>
+        <li>問い合わせ入力による自動環境構築</li>
+        <li>メール案内による利用開始支援</li>
+      </ul>
+    </div>
+
+    <div style="border: none; border-top: 2px solid #bdc3c7; margin: 40px 0;"></div>
+
+    <h2>8. システム区分と関連文書の整理</h2>
+
+    <h3>8.1 Core Firstサービス全体構成</h3>
+    <div class="system-overview">
+      <p><strong>Core Firstサービスは、サービス提供者側とサービス利用者側の2層構造で構成されています：</strong></p>
+    </div>
+
+    <table class="architecture-table">
+      <thead>
+        <tr>
+          <th>システム区分</th>
+          <th>対象文書</th>
+          <th>対象ユーザー</th>
+          <th>主要機能</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background-color: #fff3e0;">
+          <td rowspan="6"><strong>サービス提供者側</strong><br>（Core First運営会社）</td>
+          <td>Core First 管理者サイト 要件定義兼システム設計書 v1.0</td>
+          <td>システム管理者<br>運用管理者<br>カスタマーサクセス<br>経理担当者<br>監査担当者</td>
+          <td>全テナント統合管理<br>システム監視<br>課金・請求管理<br>サポート</td>
+        </tr>
+        <tr style="background-color: #fff3e0;">
+          <td>Core First ログイン管理機能 要件定義書 v2.0</td>
+          <td>システム管理者</td>
+          <td>全テナント認証基盤管理<br>セキュリティ監視</td>
+        </tr>
+        <tr style="background-color: #fff3e0;">
+          <td>Core First アカウント管理機能 要件定義書 v2.0</td>
+          <td>システム管理者<br>カスタマーサクセス</td>
+          <td>全テナントアカウント統合管理<br>横断検索</td>
+        </tr>
+        <tr style="background-color: #fff3e0;">
+          <td>Core First ライセンス管理機能 要件定義書 v2.0</td>
+          <td>システム管理者<br>経理担当者</td>
+          <td>全テナントライセンス管理<br>売上分析</td>
+        </tr>
+        <tr style="background-color: #fff3e0;">
+          <td>Core First ログ管理機能 要件定義書 v2.0</td>
+          <td>システム管理者<br>監査担当者</td>
+          <td>全テナント統合ログ管理<br>コンプライアンス対応</td>
+        </tr>
+        <tr style="background-color: #fff3e0;">
+          <td>Core First データアップロードとマッピング機能 要件定義書 v2.0</td>
+          <td>システム管理者<br>運用管理者</td>
+          <td>全テナントデータ処理監視<br>ストレージ管理</td>
+        </tr>
+        <tr style="background-color: #e3f2fd;">
+          <td><strong>サービス利用者側</strong><br>（物流企業テナント）</td>
+          <td><strong>Core First テナント向けサービス利用システム設計書 v2.0<br>（本設計書）</strong></td>
+          <td>テナント管理者<br>テナント副管理者<br>部門管理者<br>CLO<br>物流担当者<br>一般ユーザー</td>
+          <td>自社物流データ分析<br>AI支援<br>レポート生成<br>データ連携<br>自社内ユーザー管理</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>8.2 機能別の視点整理</h3>
+    <table class="architecture-table">
+      <thead>
+        <tr>
+          <th>機能分野</th>
+          <th>サービス提供者側の視点</th>
+          <th>サービス利用者側の視点（本設計書）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>ログイン管理</strong></td>
+          <td>全テナント認証基盤管理<br>SSO設定管理<br>セキュリティポリシー設定</td>
+          <td>自社テナント内ログイン<br>自社ユーザー認証<br>管理者サイトからCLO向けサイトへの遷移</td>
+        </tr>
+        <tr>
+          <td><strong>アカウント管理</strong></td>
+          <td>全テナントアカウント統合管理<br>テナント横断検索<br>緊急アカウント操作</td>
+          <td>自社テナント内ユーザー招待・管理<br>組織階層管理<br>権限設定</td>
+        </tr>
+        <tr>
+          <td><strong>ライセンス管理</strong></td>
+          <td>全テナントプラン管理<br>課金処理<br>売上分析<br>請求書発行</td>
+          <td>自社プラン確認・変更リクエスト<br>使用量監視<br>制限超過アラート確認</td>
+        </tr>
+        <tr>
+          <td><strong>ログ管理</strong></td>
+          <td>全テナント統合ログ管理<br>セキュリティ監視<br>コンプライアンス監査</td>
+          <td>自社テナント内操作ログ閲覧<br>自社ユーザー活動監視<br>部門別レポート</td>
+        </tr>
+        <tr>
+          <td><strong>データ管理</strong></td>
+          <td>全テナントデータ処理監視<br>ストレージ容量管理<br>パフォーマンス最適化</td>
+          <td>自社物流データアップロード<br>AI自動マッピング<br>データ連携設定</td>
+        </tr>
+        <tr>
+          <td><strong>AI分析</strong></td>
+          <td>AI基盤管理<br>モデル最適化<br>処理リソース管理</td>
+          <td>カテゴリ別AI分析実行<br>チャット相談<br>レポート生成</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>8.3 文書管理とバージョン管理</h3>
+    <div class="feature-box">
+      <h4>本設計書の位置づけ</h4>
+      <ul>
+        <li><strong>文書種別：</strong>サービス利用者側（テナント向け）システム設計書</li>
+        <li><strong>バージョン：</strong>v2.0（サービス提供者側との明確な区分を実施）</li>
+        <li><strong>対象読者：</strong>物流企業テナントのシステム管理者・CLO・物流担当者・開発チーム</li>
+        <li><strong>関連文書：</strong>Core First各種要件定義書v2.0シリーズと整合性確保</li>
+      </ul>
+    </div>
+
+    <div class="important">
+      <strong>🔴 重要な注意事項</strong><br>
+      <ul style="margin-top: 10px; margin-bottom: 0;">
+        <li>本設計書で定義する「管理者」は、<strong>テナント企業内の管理者</strong>を指します</li>
+        <li>Core First運営会社の「システム管理者」とは異なりますのでご注意ください</li>
+        <li>テナント管理者は自社テナント内のみアクセス可能で、他社テナントへはアクセスできません</li>
+        <li>プラン変更・課金に関する最終承認は、サービス提供者側で実施されます</li>
+      </ul>
+    </div>
+
+    <div class="version-info">
+      <p>
+        <strong>Core First テナント向けサービス利用システム設計書 v2.0</strong><br>
+        このシステム設計書は、物流企業（テナント）が利用するCLO向けSaaSサービスの包括的な設計仕様を定めたものです。<br>
+        サービス提供者側システムとの明確な区分により、整合性のあるマルチテナントSaaS基盤を実現します。<br>
+        実装時は、本設計書を基に詳細設計・開発を進めてください。
+      </p>
+      <p style="margin-top: 15px; font-size: 11px; color: #999;">
+        最終更新日: 2025年10月17日 | バージョン: v2.0 | 文書種別: サービス利用者側（テナント向け）
+      </p>
+    </div>
+  
+
+</div></body></html>
