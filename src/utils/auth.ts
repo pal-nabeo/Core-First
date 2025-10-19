@@ -1,5 +1,5 @@
 // PAL物流SaaS 認証ユーティリティ
-// import bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 // import jwt from 'jsonwebtoken';
 // import { v4 as uuidv4 } from 'uuid';
 import type { User, Tenant, AuthContext, CloudflareBindings } from '../types/auth';
@@ -10,23 +10,23 @@ const SESSION_EXPIRY_HOURS = 24;
 const REMEMBER_ME_EXPIRY_DAYS = 30;
 
 /**
- * パスワードハッシュ化（Web Crypto API使用）
+ * パスワードハッシュ化（bcrypt使用）
  */
 export async function hashPassword(password: string): Promise<string> {
-  // 簡易実装：本番環境では適切なハッシュ関数を使用する
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + 'salt_string');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const saltRounds = 12;
+  return await bcrypt.hash(password, saltRounds);
 }
 
 /**
- * パスワード検証
+ * パスワード検証（bcrypt使用）
  */
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  const passwordHash = await hashPassword(password);
-  return passwordHash === hashedPassword;
+  try {
+    return await bcrypt.compare(password, hashedPassword);
+  } catch (error) {
+    console.error('Password verification error:', error);
+    return false;
+  }
 }
 
 /**

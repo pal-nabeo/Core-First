@@ -1,11 +1,12 @@
 -- サービス提供者ドメインを pal-style.co.jp に変更
 -- システム管理者のドメインを Core First から PAL Style に統一
 
--- 1. systemテナントのsubdomainを更新
+-- 1. systemテナントのsubdomainとdomain_allowlistを更新
 UPDATE tenants 
 SET 
   subdomain = 'pal-style',
-  name = 'PAL Style サービス提供者'
+  name = 'PAL Style サービス提供者',
+  domain_allowlist = '["pal-style.co.jp"]'
 WHERE id = 'system';
 
 -- 2. システム管理者ユーザーのメールアドレスドメインを更新

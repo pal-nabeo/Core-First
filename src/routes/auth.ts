@@ -75,6 +75,12 @@ auth.post('/login', async (c) => {
   const userAgent = c.req.header('User-Agent') || 'unknown';
 
   try {
+    console.log('=== LOGIN REQUEST START ===');
+    console.log('Email:', email);
+    console.log('Has password:', !!password);
+    console.log('tenant_subdomain from body:', tenant_subdomain);
+    console.log('Full body:', JSON.stringify({ email, password: '***', remember_me, tenant_subdomain }));
+    
     // テナント取得
     let subdomain = tenant_subdomain;
     if (!subdomain) {
@@ -87,6 +93,8 @@ auth.post('/login', async (c) => {
         subdomain = c.req.query('tenant') || c.req.header('X-Tenant-Subdomain') || 'demo-company';
       }
     }
+    
+    console.log('Tenant determined:', subdomain, 'for email:', email);
 
     const tenant = await getTenantBySubdomain(c.env.DB, subdomain);
     if (!tenant) {
