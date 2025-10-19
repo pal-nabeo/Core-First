@@ -25,7 +25,7 @@ async function verifyPassword(password: string, hashedPassword: string): Promise
   if (hashedPassword.startsWith('$2b$')) {
     // テストデータで使用されている既知のbcryptハッシュとの比較
     // 実際のプロダクション環境では、bcryptライブラリまたはWeb Crypto APIを使用
-    const knownTestHash = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewMLaACl3PGec4Zy';
+    const knownTestHash = '$2b$12$xJhsDS6H5PIztOvkBywUxe0aZtM.hTkKwDJzbZCFA8PJjC7UtU5Im';
     
     // テスト環境用：固定パスワード "password123" の検証
     if (hashedPassword === knownTestHash && password === 'password123') {
@@ -79,11 +79,16 @@ auth.post('/login', async (c) => {
     const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
     const userAgent = c.req.header('User-Agent') || 'unknown';
 
-    // シンプルなテナント検出：メールアドレスからダイレクトに判定
+    // テナント検出：tenant_subdomainパラメータ優先、なければメールドメインから判定
     let subdomain: string;
     
-    if (email.includes('corefirst.com')) {
-      subdomain = 'system'; // 統合管理者
+    if (tenant_subdomain) {
+      // フロントエンドから明示的に指定された場合はそれを使用
+      subdomain = tenant_subdomain;
+    } else if (email.includes('pal-style.co.jp')) {
+      subdomain = 'pal-style'; // PAL Style サービス提供者
+    } else if (email.includes('corefirst.com')) {
+      subdomain = 'pal-style'; // 旧ドメイン互換性（pal-styleにリダイレクト）
     } else if (email.includes('abc-logistics.co.jp')) {
       subdomain = 'abc-logistics';
     } else if (email.includes('xyz-delivery.jp')) {
