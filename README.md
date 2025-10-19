@@ -17,9 +17,9 @@
 - ⚠️ **保留中のマイグレーション**: 0006-0008（ライセンス管理、セキュリティ強化、2FA）は構文エラーのため一時的に保留
 
 ### テストアカウント
-- **システム管理者（PAL Style）**: system@pal-style.co.jp / password
-- **ABC物流管理者**: admin@abc-logistics.co.jp / password
-- **XYZ配送管理者**: admin@xyz-delivery.co.jp / password
+- **システム管理者（PAL Style）**: system@pal-style.co.jp / password123
+- **ABC物流管理者**: admin@abc-logistics.co.jp / password123
+- **XYZ配送管理者**: admin@xyz-delivery.co.jp / password123
 
 ### 技術スタック
 - **フレームワーク**: Hono v4.0.0
