@@ -1,6 +1,13 @@
 -- Core First サービス提供者側機能強化（修正版）
 -- 要件定義書 v2.0 に基づくサービス提供者とテナント管理者の明確分離
 
+-- 0. systemテナントを作成（存在しない場合）
+INSERT OR IGNORE INTO tenants (
+  id, subdomain, name, plan_id, company_type, company_size, status, created_at
+) VALUES (
+  'system', 'system', 'Core First サービス提供者', 'unlimited', 'service_provider', 'enterprise', 'active', datetime('now')
+);
+
 -- 1. 既存のsystemテナント情報を更新（安全に）
 UPDATE tenants 
 SET 
@@ -12,13 +19,20 @@ WHERE id = 'system';
 
 -- 2. テンプレートロール用の特別なテナント作成
 INSERT OR IGNORE INTO tenants (
-  id, name, plan_id, company_type, company_size, status, created_at
+  id, subdomain, name, plan_id, company_type, company_size, status, created_at
 ) VALUES (
-  'role-template', 'ロールテンプレート', 'template', 'template', 'template', 'active', datetime('now')
+  'role-template', 'role-template', 'ロールテンプレート', 'template', 'template', 'template', 'active', datetime('now')
 );
 
--- 3. 既存のシステムロールを維持しつつ、新しいサービス提供者ロールを追加
+-- 3. 基本システムロールを作成（存在しない場合）
 INSERT OR IGNORE INTO roles (id, tenant_id, name, display_name, description, is_system_role, permissions) VALUES 
+  -- 基本システムロール
+  ('role_system_super_admin', 'system', 'super_admin', 'スーパー管理者', 'テナント横断・システム全体管理', 1,
+   '["tenant.create", "tenant.update", "tenant.delete", "tenant.cross_tenant_access", "admin.manage", "system.config", "emergency.access", "billing.manage", "security.audit"]'),
+   
+  ('role_system_admin', 'system', 'admin', 'システム管理者', '技術・インフラ管理専門・パフォーマンス監視・障害対応', 1,
+   '["system.monitor", "system.backup", "system.security", "performance.manage", "infrastructure.manage", "logs.technical"]'),
+  
   -- 新しいサービス提供者専用ロール
   ('role_system_operation_admin', 'system', 'operation_admin', '運用管理者', '日常運用・アラート対応・定型作業・ユーザーサポート', 1,
    '["operation.daily", "alert.respond", "user.support", "reports.create", "logs.operation"]'),
@@ -31,18 +45,6 @@ INSERT OR IGNORE INTO roles (id, tenant_id, name, display_name, description, is_
    
   ('role_system_auditor', 'system', 'auditor', '監査担当者', 'ログ閲覧・監査レポート・コンプライアンス確認（閲覧専用）', 1,
    '["audit.view", "logs.view", "compliance.check", "reports.audit"]');
-
--- 4. 既存のシステムロールの権限を拡張（要件に合わせて更新）
-UPDATE roles 
-SET permissions = '["tenant.create", "tenant.update", "tenant.delete", "tenant.cross_tenant_access", "admin.manage", "system.config", "emergency.access", "billing.manage", "security.audit"]'
-WHERE id = 'role_system_super_admin';
-
-UPDATE roles 
-SET 
-    display_name = 'システム管理者',
-    description = '技術・インフラ管理専門・パフォーマンス監視・障害対応',
-    permissions = '["system.monitor", "system.backup", "system.security", "performance.manage", "infrastructure.manage", "logs.technical"]'
-WHERE id = 'role_system_admin';
 
 -- 5. テナント管理者側ロールテンプレート（role-templateテナント使用）
 INSERT OR IGNORE INTO roles (id, tenant_id, name, display_name, description, is_system_role, permissions) VALUES 

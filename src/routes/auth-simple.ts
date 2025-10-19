@@ -104,6 +104,15 @@ auth.post('/login', async (c) => {
     console.log(`Tenant found:`, tenant);
     
     if (!tenant) {
+      console.error(`Tenant not found for subdomain: ${subdomain}`);
+      console.error(`Available tenants check...`);
+      
+      // デバッグ用：利用可能なテナント一覧を確認
+      const allTenants = await c.env.DB.prepare(`
+        SELECT subdomain, name, status FROM tenants
+      `).all();
+      console.error(`Available tenants:`, allTenants.results);
+      
       return c.json({ 
         success: false, 
         error: `ログインに失敗しました。企業情報が見つかりません。(サブドメイン: ${subdomain})` 

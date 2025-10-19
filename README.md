@@ -2,6 +2,29 @@
 
 効率的な統合管理で、ビジネスを加速させるCLO（Chief Logistics Officer）向けマルチテナント対応SaaSサービス
 
+## 🚀 プロジェクトステータス（2025-10-19更新）
+
+✅ **プロジェクト復元完了** - 前回セッションからのバックアップを正常に復元しました
+
+### 実装状況
+- ✅ **データベース**: 5つのマイグレーションを適用完了（20テーブル作成）
+- ✅ **シードデータ**: テストユーザーとテナントデータを投入完了
+- ✅ **静的アセット**: CSS/JSファイル（24個）を配置完了
+- ✅ **サーバー起動**: PM2で開発サーバーが正常稼働中
+- ⚠️ **保留中のマイグレーション**: 0006-0008（ライセンス管理、セキュリティ強化、2FA）は構文エラーのため一時的に保留
+
+### テストアカウント
+- **システム管理者**: system@corefirst.com / password
+- **ABC物流管理者**: admin@abc-logistics.co.jp / password
+- **XYZ配送管理者**: admin@xyz-delivery.co.jp / password
+
+### 技術スタック
+- **フレームワーク**: Hono v4.0.0
+- **ランタイム**: Cloudflare Workers/Pages
+- **データベース**: Cloudflare D1 (SQLite)
+- **開発ツール**: Vite v6.3.6, Wrangler v4.42.0
+- **プロセス管理**: PM2
+
 ## プロジェクト概要
 
 **Core First**は、物流業界のCLO（最高物流責任者）向けに設計された、マルチテナント対応統合管理システムです。企業単位での完全なデータ分離と、物流業界特化の高度な分析・管理機能を提供します。
@@ -18,17 +41,17 @@
 
 ## URLs
 
-- **開発環境**: https://3000-i5ksp8lcx165ruwocw37r-6532622b.e2b.dev
-- **CLOダッシュボード（チュートリアル）**: https://3000-i5ksp8lcx165ruwocw37r-6532622b.e2b.dev/dashboard
-- **メインダッシュボード**: https://3000-i5ksp8lcx165ruwocw37r-6532622b.e2b.dev/main-dashboard
-- **AI分析・チャット**: https://3000-i5ksp8lcx165ruwocw37r-6532622b.e2b.dev/ai-analysis
-- **データ連携・マッピング**: https://3000-i5ksp8lcx165ruwocw37r-6532622b.e2b.dev/data-mapping
-- **データ統合管理**: https://3000-i5ksp8lcx165ruwocw37r-6532622b.e2b.dev/data-integration
-- **レポート管理**: https://3000-i5ksp8lcx165ruwocw37r-6532622b.e2b.dev/report-management
-- **🆕 サービス提供者統合管理**: https://3000-i5ksp8lcx165ruwocw37r-6532622b.e2b.dev/admin-dashboard
-- **🆕 テナント管理ダッシュボード**: https://3000-i5ksp8lcx165ruwocw37r-6532622b.e2b.dev/tenant-dashboard
-- **ログイン画面**: https://3000-i5ksp8lcx165ruwocw37r-6532622b.e2b.dev/login
-- **API健康チェック**: https://3000-i5ksp8lcx165ruwocw37r-6532622b.e2b.dev/api/health
+- **開発環境**: https://3000-ip4hyygtw38921qnvp167-5634da27.sandbox.novita.ai
+- **CLOダッシュボード（チュートリアル）**: https://3000-ip4hyygtw38921qnvp167-5634da27.sandbox.novita.ai/dashboard
+- **メインダッシュボード**: https://3000-ip4hyygtw38921qnvp167-5634da27.sandbox.novita.ai/main-dashboard
+- **AI分析・チャット**: https://3000-ip4hyygtw38921qnvp167-5634da27.sandbox.novita.ai/ai-analysis
+- **データ連携・マッピング**: https://3000-ip4hyygtw38921qnvp167-5634da27.sandbox.novita.ai/data-mapping
+- **データ統合管理**: https://3000-ip4hyygtw38921qnvp167-5634da27.sandbox.novita.ai/data-integration
+- **レポート管理**: https://3000-ip4hyygtw38921qnvp167-5634da27.sandbox.novita.ai/report-management
+- **🆕 サービス提供者統合管理**: https://3000-ip4hyygtw38921qnvp167-5634da27.sandbox.novita.ai/admin-dashboard
+- **🆕 テナント管理ダッシュボード**: https://3000-ip4hyygtw38921qnvp167-5634da27.sandbox.novita.ai/tenant-dashboard
+- **ログイン画面**: https://3000-ip4hyygtw38921qnvp167-5634da27.sandbox.novita.ai/login
+- **API健康チェック**: https://3000-ip4hyygtw38921qnvp167-5634da27.sandbox.novita.ai/api/health
 
 ## データ アーキテクチャ
 
@@ -49,6 +72,278 @@
 1. **ログイン**: サブドメイン → テナント識別 → ユーザー認証 → セッション作成
 2. **権限チェック**: セッション検証 → ロール確認 → 操作許可判定
 3. **監査ログ**: 全操作 → ログ記録 → 監査レポート生成
+
+## 🆕 データアップロードとマッピング機能（2025-10-19新規実装）
+
+### Core First データアップロード・マッピング・セキュリティ統合システム
+
+**要件定義書「Core First データアップロードとマッピング機能 要件定義書」に基づく包括的な機能実装を完了**
+
+#### ✅ 実装されたデータ管理機能
+
+**1. データアップロードとマッピング機能**
+- **ファイルアップロード**: 暗号化対応・バリデーション付きファイルアップロード
+- **データマッピング**: テンプレートベースのフィールドマッピング・リアルタイム検証
+- **処理結果管理**: アップロード→マッピング→処理→完了までの全工程管理
+- **テナント分離**: 厳格な権限分離でテナント管理者は自テナントのみアクセス可能
+
+**2. テンプレート管理システム**
+- **テンプレート作成・管理**: フィールド定義・検証ルール・バージョン管理
+- **共有制御**: テナント内共有・グローバル配布・承認ワークフロー
+- **権限分離**: サービス提供者（グローバル管理）・テナント管理者（自テナント管理）
+- **使用状況監視**: テンプレート利用統計・クロステナント使用分析
+
+**3. 暗号化・キー管理システム**
+- **キー生成・管理**: テナント固有暗号化キー・強度レベル選択・自動ローテーション
+- **データ暗号化**: ファイルレベル・フィールドレベル暗号化・復号化API
+- **キーライフサイクル**: 生成→使用→ローテーション→無効化までの完全管理
+- **緊急キー無効化**: サービス提供者による緊急キー停止・影響分析
+
+**4. AI学習データ同意管理**
+- **同意ポリシー設定**: テナント単位でのAI学習同意ポリシー・用途制限
+- **データセット別同意**: アップロードデータごとの同意管理・機密性レベル設定
+- **プロセス監視**: AI学習プロセス開始・進捗・完了・緊急停止の管理
+- **同意撤回**: データ削除・処理停止・完全監査証跡
+
+**5. フィールドレベルアクセス制御**
+- **アクセス制御ポリシー**: フィールド単位でのアクセスレベル・マスキング設定
+- **データ検証システム**: リアルタイムデータ検証・自動修正・品質レポート
+- **マスキングパターン**: 役割別フィールドマスキング・動的マスキング
+- **異常検知**: 不正アクセスパターン・データ品質異常の自動検出
+
+**6. クロステナント監査・通知システム**
+- **監査設定**: テナント単位でのクロステナント操作監視設定
+- **操作記録**: サービス提供者によるクロステナント操作の完全記録
+- **異常パターン検知**: 操作頻度・時間帯・承認なし操作の異常検出
+- **リアルタイム通知**: 重要度に応じた即座通知・ダイジェスト通知
+
+**7. 緊急アクセス拡張システム**
+- **データ緊急アクセス**: データ破損・暗号化問題・AI処理エラー時の緊急対応
+- **多段階承認**: 重要度に応じた1名～2名承認・条件付き承認
+- **時限セッション**: 緊急アクセス用時限トークン・実行ログ記録
+- **即座通知**: テナント管理者への緊急アクセス開始通知
+
+#### 📊 データアップロード・マッピングAPI エンドポイント
+
+**データアップロード機能API**
+- `POST /api/data-upload/upload` - ファイルアップロード（暗号化・検証付き）
+- `GET /api/data-upload/history` - アップロード履歴（テナント分離）
+- `POST /api/data-upload/mapping` - マッピング設定作成
+- `POST /api/data-upload/mapping/:mapping_id/process` - データ処理実行
+- `GET /api/data-upload/global/overview` - 全テナント統計（サービス提供者専用）
+- `POST /api/data-upload/emergency/access` - 緊急データアクセス
+
+**テンプレート管理API**
+- `POST /api/templates/create` - テンプレート作成（テナント内）
+- `GET /api/templates/list` - テンプレート一覧（共有テンプレート含む）
+- `PUT /api/templates/:template_id` - テンプレート更新（所有者のみ）
+- `POST /api/templates/:template_id/share-request` - 共有リクエスト作成
+- `POST /api/templates/global/distribute` - グローバル配布（サービス提供者専用）
+- `PUT /api/templates/share-request/:request_id/approve` - 共有承認・却下
+
+**暗号化・キー管理API**
+- `POST /api/encryption/keys/generate` - 暗号化キー生成
+- `GET /api/encryption/keys/list` - キー一覧（テナント分離）
+- `POST /api/encryption/keys/:key_id/rotate` - キーローテーション
+- `POST /api/encryption/encrypt` - データ暗号化
+- `POST /api/encryption/decrypt` - データ復号化
+- `GET /api/encryption/global/key-statistics` - グローバルキー統計（サービス提供者専用）
+- `POST /api/encryption/emergency/revoke-key` - 緊急キー無効化
+
+**AI学習データ同意管理API**
+- `POST /api/ai-consent/consent-policy` - AI同意ポリシー設定
+- `POST /api/ai-consent/dataset-consent` - データセット別同意設定
+- `GET /api/ai-consent/consent-status` - 同意状況一覧
+- `POST /api/ai-consent/revoke-consent/:consent_id` - 同意撤回
+- `POST /api/ai-consent/ai-process/start` - AI学習プロセス開始通知
+- `POST /api/ai-consent/ai-process/:process_id/complete` - AI学習プロセス完了通知
+- `GET /api/ai-consent/global/consent-statistics` - グローバル同意統計（サービス提供者専用）
+- `POST /api/ai-consent/emergency/stop-ai-process` - 緊急AI停止
+
+**フィールドアクセス制御API**
+- `POST /api/field-access/field-policy` - フィールドアクセス制御ポリシー設定
+- `POST /api/field-access/validation-rules` - データ検証ルール設定
+- `POST /api/field-access/data/access` - フィールドアクセス権限チェック付きデータ取得
+- `POST /api/field-access/data/validate` - データ検証実行
+- `PUT /api/field-access/masking-config/:policy_id` - マスキング設定更新
+- `GET /api/field-access/global/field-access-stats` - グローバルフィールドアクセス統計（サービス提供者専用）
+
+**クロステナント監査・通知API**
+- `POST /api/cross-tenant-audit/audit-settings` - クロステナント監査設定
+- `POST /api/cross-tenant-audit/notification-config` - 通知設定管理
+- `POST /api/cross-tenant-audit/record-operation` - クロステナント操作記録
+- `GET /api/cross-tenant-audit/operation-history` - 操作履歴取得
+- `GET /api/cross-tenant-audit/anomaly-detection` - 異常パターン検知
+- `GET /api/cross-tenant-audit/notification-history` - 通知履歴取得
+- `PUT /api/cross-tenant-audit/notification/:notification_id/status` - 通知ステータス更新
+- `GET /api/cross-tenant-audit/global/audit-statistics` - グローバル監査統計（サービス提供者専用）
+
+**緊急アクセス拡張API**
+- `POST /api/breakglass/data-emergency/request` - データ緊急アクセス要求
+- `POST /api/breakglass/data-emergency/approve/:request_id` - 緊急承認（多段階）
+- `POST /api/breakglass/data-emergency/execute` - 緊急操作実行
+
+#### 🔒 セキュリティ・権限分離の実装
+
+**サービス提供者権限**
+- 全テナントのデータアップロード・マッピング状況監視
+- グローバルテンプレート作成・配布
+- 暗号化キーのグローバル管理・緊急無効化
+- AI学習プロセスの緊急停止・データ削除
+- クロステナント操作の完全監査・異常検知
+- 緊急アクセスの承認・データ救済作業
+
+**テナント管理者権限**
+- 自テナント内データアップロード・処理管理
+- 自テナント所有テンプレートの作成・編集・共有申請
+- 自テナント暗号化キーの生成・管理
+- 自テナントAI学習同意ポリシー・データセット同意管理
+- 自テナント向けクロステナント操作監視設定
+- 緊急アクセス通知の受信・対応
+
+**完全なテナント分離**
+- SQLレベルでのテナントID強制フィルタ
+- APIレベルでのユーザーコンテキスト検証
+- 暗号化キーのテナント分離管理
+- AI同意・フィールドアクセス制御のテナント境界強制
+
+## 🆕 ログ管理機能（2025-10-19新規実装）
+
+### Core First ログ管理システム
+
+**要件定義書に基づく包括的ログ管理機能を実装完了**
+
+#### ✅ 実装されたログ管理機能
+
+**1. 役割別ログアクセス制御**
+- **サービス提供者**: 全テナント横断ログアクセス（システム・インフラ・セキュリティログ）
+- **テナント管理者**: 自テナント内ログのみアクセス（ユーザー活動・ビジネス操作・監査ログ）
+- **権限別フィールドマスキング**: PII情報の役割別表示制御
+- **テナント分離**: SQLレベルでのデータ分離強制
+
+**2. ログ種別対応**
+- **システムログ**: インフラ・アプリケーション・システム起動ログ（サービス提供者のみ）
+- **セキュリティログ**: 認証・認可・セキュリティイベント（権限に応じて両方）
+- **ビジネスログ**: ユーザー活動・業務操作・データ変更（主にテナント、一部サービス提供者も参照）
+- **監査ログ**: アクセス記録・コンプライアンス・データ変更履歴（両方、フィールド制限あり）
+
+**3. 緊急アクセス（ブレイクグラス）システム**
+- **要求承認フロー**: 理由記載→承認者承認→期間限定アクセストークン発行
+- **承認者制限**: スーパー管理者・セキュリティ管理者・法務管理者のみ承認可能
+- **完全監査**: 緊急アクセス要求・承認・使用・無効化の全工程記録
+- **自動期限切れ**: 最大24時間・自動無効化・期限延長不可
+
+**4. フィールドレベルセキュリティ**
+- **PII マスキング**: メール・電話・IPアドレス・個人データの役割別マスキング
+- **カスタマーサクセス**: 匿名化データのみアクセス（***MASKED***）
+- **財務管理者**: 財務関連フィールドのみアクセス・他はRESTRICTED
+- **緊急アクセス時**: マスキング解除（完全監査付き）
+
+**5. 監査証跡システム**
+- **アクセスログ記録**: 誰が・いつ・どのログに・なぜアクセスしたかを完全記録
+- **検索履歴保存**: 検索条件・結果件数・ブレイクグラス使用の有無
+- **改ざん防止**: ハッシュ値・デジタル署名・書き込み専用ストレージ対応
+- **エクスポート監査**: CSV/PDF出力の完全ログ化・承認機能
+
+#### 📊 ログ管理API エンドポイント
+
+**ログ管理API**
+- `POST /api/logs/search` - ログ検索（テナント分離・権限制御）
+- `POST /api/logs/export` - ログエクスポート（非同期処理）
+- `GET /api/logs/stats` - ログ統計（役割別集計）
+
+**緊急アクセス（ブレイクグラス）API**  
+- `POST /api/breakglass/request` - 緊急アクセス要求作成
+- `POST /api/breakglass/approve/:requestId` - 要求承認・拒否
+- `GET /api/breakglass/requests` - 要求一覧取得
+- `POST /api/breakglass/revoke/:sessionToken` - セッション無効化
+
+#### 🔒 セキュリティ実装詳細
+
+**1. テナント分離強制**
+```typescript
+// 自動テナント分離
+function enforceTenantseparation(query: any, userTenantId: string, userRole: string) {
+  if (userRole.startsWith('system_') || userRole === 'super_admin') {
+    return query; // サービス提供者は全テナント可能
+  }
+  return { ...query, tenant_id: userTenantId }; // テナント管理者は自テナントのみ
+}
+```
+
+**2. 権限チェックマトリックス**
+```typescript
+const accessRules: Record<string, string[]> = {
+  'system': ['system:logs:system_view'],
+  'authentication': ['system:logs:view_all_tenants', 'tenant:logs:security_events'],
+  'user_activity': ['system:logs:view_all_tenants', 'tenant:logs:user_activity'],
+  'audit_trail': ['system:logs:audit_access', 'tenant:logs:audit_trail']
+};
+```
+
+**3. ブレイクグラス承認フロー**
+```sql
+-- 緊急アクセス要求テーブル
+CREATE TABLE breakglass_requests (
+  id TEXT PRIMARY KEY,
+  requester_id TEXT NOT NULL,
+  target_tenant_id TEXT NOT NULL, 
+  reason TEXT NOT NULL, -- security_incident, system_failure, etc.
+  justification TEXT NOT NULL,
+  duration_hours INTEGER DEFAULT 2,
+  status TEXT DEFAULT 'pending' -- pending, approved, denied, expired
+);
+
+-- 緊急アクセスセッション
+CREATE TABLE breakglass_sessions (
+  token TEXT PRIMARY KEY,
+  expires_at DATETIME NOT NULL,
+  status TEXT DEFAULT 'approved' -- approved, used, expired, revoked
+);
+```
+
+#### 🗄️ データベース構造（ログ管理）
+
+```sql
+-- ログ管理システムテーブル群
+logs                         -- メインログテーブル
+log_access_records           -- ログアクセス記録
+breakglass_requests          -- 緊急アクセス要求  
+breakglass_sessions          -- 緊急アクセスセッション
+log_export_jobs             -- ログエクスポートジョブ
+log_retention_policies      -- ログ保持ポリシー
+
+-- サンプルログデータ（各種ログタイプ）
+system, authentication, user_activity, audit_trail, 
+security_event, business_operation, access_log, compliance
+```
+
+#### ✅ 権限拡張
+
+**サービス提供者権限**
+```typescript
+// 追加されたログ管理関連権限
+'system:logs:view_all_tenants',      // 全テナントログ参照
+'system:logs:search_all_tenants',    // 全テナントログ検索  
+'system:logs:export_all_tenants',    // 全テナントログエクスポート
+'system:logs:emergency_access',      // 緊急アクセス権限
+'system:logs:breakglass_approve',    // ブレイクグラス承認権限
+'system:logs:audit_access',          // 監査ログアクセス
+'system:logs:system_view',           // システムログ参照
+'system:logs:infrastructure_view'    // インフラログ参照
+```
+
+**テナント管理者権限**
+```typescript  
+// テナント管理者専用ログ権限
+'tenant:logs:view',                  // 自テナントログ参照
+'tenant:logs:search',               // 自テナントログ検索
+'tenant:logs:export',               // 自テナントログエクスポート  
+'tenant:logs:user_activity',        // ユーザー活動ログ
+'tenant:logs:business_operations',  // ビジネス操作ログ
+'tenant:logs:security_events',      // セキュリティイベント
+'tenant:logs:audit_trail'           // 監査証跡
+```
 
 ## 🆕 ロール階層とアクセス分離（2025-10-18更新）
 
@@ -828,6 +1123,80 @@ sms_verification_codes   -- SMS認証コード
 7. ✅ **監査・コンプライアンス** - 全操作ログ・セキュリティイベント記録
 
 **対応要件**: ライセンス管理機能・ログイン管理機能 要件定義書準拠
+
+### 2025-10-19: ログ管理機能 要件定義書対応完了 🆕
+
+#### ✅ Core First ログ管理システム実装完了
+
+**包括的ログ管理機能**
+- ✅ 役割別アクセス制御 - サービス提供者（全テナント）vs テナント管理者（自テナントのみ）
+- ✅ ログ種別管理システム - システム・セキュリティ・ビジネス・監査ログの完全分類
+- ✅ フィールドレベルマスキング - PII情報の役割別表示制御・匿名化機能
+- ✅ テナント分離強制 - SQLレベルでの自動テナント分離・クロステナント防止
+- ✅ 監査証跡システム - 全ログアクセスの記録・検索履歴保存・改ざん防止
+
+**緊急アクセス（ブレイクグラス）システム**
+- ✅ 要求承認フロー - 理由記載→多段階承認→期間限定トークン発行
+- ✅ 承認者権限制御 - スーパー管理者・セキュリティ・法務管理者のみ承認可能
+- ✅ JIT（Just-In-Time）アクセス - 最大24時間期限・自動無効化・セッション管理
+- ✅ 完全監査機能 - 緊急要求・承認・使用・無効化の全工程記録・アラート送信
+
+**セキュリティ強化機能**
+- ✅ 権限マトリックス - ログ種別×ロール別のアクセス制御マトリックス
+- ✅ 自動ログアクセス記録 - 誰が・いつ・どのログに・なぜアクセスしたかの完全記録
+- ✅ エクスポート管理 - CSV/PDF出力の承認制・ダウンロード履歴・期限管理
+- ✅ 多層防御設計 - RLS・APIレベル検証・セッション検証・ポリシーエンジン
+
+**ログ管理API実装**
+- ✅ `POST /api/logs/search` - 高度検索・テナント分離・権限制御・マスキング
+- ✅ `POST /api/logs/export` - 非同期エクスポート・ジョブ管理・承認機能
+- ✅ `GET /api/logs/stats` - 統計分析・ダッシュボード・傾向分析
+- ✅ `POST /api/breakglass/request` - 緊急アクセス要求・承認フロー
+- ✅ `POST /api/breakglass/approve/:requestId` - 承認・拒否・理由記録
+- ✅ `POST /api/breakglass/revoke/:sessionToken` - セッション無効化・監査
+
+**データベース拡張**
+```sql
+-- ログ管理システムテーブル群（新規追加）
+logs                        -- メインログテーブル（改ざん防止ハッシュ付き）
+log_access_records          -- ログアクセス完全監査
+breakglass_requests         -- 緊急アクセス要求管理
+breakglass_sessions         -- JITアクセストークン管理
+log_export_jobs            -- エクスポートジョブ管理
+log_retention_policies     -- ログ保持・削除ポリシー
+
+-- サンプルデータ: 8種類のログタイプ
+system, infrastructure, authentication, user_activity,
+audit_trail, security_event, business_operation, compliance
+```
+
+**権限システム拡張**
+- ✅ サービス提供者権限 - `system:logs:*` 全テナント横断ログ管理権限セット
+- ✅ テナント管理者権限 - `tenant:logs:*` 自テナント限定ログ管理権限セット
+- ✅ 緊急アクセス権限 - `system:logs:emergency_access` ブレイクグラス要求権限
+- ✅ 承認者権限 - `system:logs:breakglass_approve` ブレイクグラス承認権限
+
+**コンプライアンス対応**
+- ✅ ログ保持ポリシー - GDPR・SOX・セキュリティコンプライアンス準拠
+- ✅ 個人情報保護 - PII自動マスキング・匿名化・アクセス制御
+- ✅ 監査要件対応 - 改ざん防止・長期保存・検索履歴・エクスポート管理
+- ✅ セキュリティ監視 - クロステナントアクセス試行・不正操作の即時アラート
+
+#### 🔧 実装されたミドルウェア・機能
+- ✅ ログ検索フィルタリング - テナント分離・権限チェック・フィールドマスキング
+- ✅ ブレイクグラス管理 - 要求作成・承認処理・セッション管理・監査記録
+- ✅ 監査ログ自動記録 - 全ログアクセス・検索・エクスポート操作の自動記録
+- ✅ PII マスキングエンジン - 役割別フィールド表示制御・段階的匿名化
+
+#### ✅ 完全対応項目リスト
+1. ✅ **サービス提供者・テナント管理者の権限分離** - 明確なアクセス範囲定義
+2. ✅ **ログ管理機能における役割別アクセス制御** - 権限マトリックス実装
+3. ✅ **各機能の対象範囲制御** - 全テナント対象 vs 自テナントのみの厳格分離
+4. ✅ **ログの参照・操作権限の適切な分離** - 読み取り専用・エクスポート制限
+5. ✅ **セキュリティ要件とアクセス制御の整合性** - 多層防御・監査証跡
+6. ✅ **既存RBACシステムとの整合性** - 権限セット拡張・ポリシー連携
+
+**対応要件**: Core First ログ管理機能 要件定義書 v2.0 準拠
 
 ### 2025-10-18: 要件定義書v2.0 対応完了
 

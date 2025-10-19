@@ -38,11 +38,39 @@
 }
 
 #sidebar.collapsed {
-    width: 70px;
+    width: 64px;
 }
 
 #sidebar.collapsed .sidebar-text {
     display: none;
+}
+
+#sidebar.collapsed .sidebar-icon {
+    display: flex !important;
+}
+
+/* 折りたたみ時はセクション見出しも非表示 */
+#sidebar.collapsed .text-xs.font-semibold.text-gray-600 {
+    display: none;
+}
+
+/* 折りたたみ時のボタンも非表示 */
+#sidebar.collapsed .border-t .w-full {
+    display: none;
+}
+
+/* 折りたたみ時のユーザー情報も非表示 */
+#sidebar.collapsed .border-t.bg-gradient-to-r {
+    padding: 8px;
+    text-align: center;
+}
+
+#sidebar.collapsed .border-t.bg-gradient-to-r .ml-3 {
+    display: none;
+}
+
+#sidebar.collapsed .border-t.bg-gradient-to-r .w-10 {
+    margin: 0 auto;
 }
 
 #sidebar.collapsed .nav-item {
@@ -65,7 +93,7 @@
 #sidebar.collapsed .nav-item::before {
     content: attr(data-tooltip);
     position: absolute;
-    left: 70px;
+    left: 64px;
     top: 50%;
     transform: translateY(-50%);
     background: #1f2937;

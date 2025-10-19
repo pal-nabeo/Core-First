@@ -18,7 +18,30 @@ const SERVICE_PROVIDER_PERMISSIONS = [
   'system:support:all_tenants',
   'system:emergency_access',
   'system:audit:global_logs',
-  'system:infrastructure:manage'
+  'system:infrastructure:manage',
+  // ログ管理関連権限（全テナント対象）
+  'system:logs:view_all_tenants',
+  'system:logs:search_all_tenants',
+  'system:logs:export_all_tenants',
+  'system:logs:manage_retention',
+  'system:logs:emergency_access',
+  'system:logs:breakglass_approve',
+  'system:logs:audit_access',
+  'system:logs:system_view',
+  'system:logs:infrastructure_view',
+  // データアップロードとマッピング関連権限（全テナント対象）
+  'system:data_upload:manage_global_templates',
+  'system:data_upload:view_all_tenants',
+  'system:data_upload:emergency_access',
+  'system:data_upload:cross_tenant_operations',
+  'system:data_upload:key_management',
+  'system:data_upload:audit_all',
+  'system:mapping:global_templates',
+  'system:mapping:cross_tenant_view',
+  'system:mapping:ai_training_oversight',
+  'system:encryption:global_manage',
+  'system:template:distribute_global',
+  'system:template:approve_sharing'
 ];
 
 // テナント管理者権限（自テナント内のみ）
@@ -32,7 +55,29 @@ const TENANT_ADMIN_PERMISSIONS = [
   'tenant:backup:manage',
   'tenant:support:create_ticket',
   'tenant:audit:view_logs',
-  'tenant:integration:manage'
+  'tenant:integration:manage',
+  // ログ管理関連権限（自テナントのみ）
+  'tenant:logs:view',
+  'tenant:logs:search',
+  'tenant:logs:export',
+  'tenant:logs:user_activity',
+  'tenant:logs:business_operations',
+  'tenant:logs:security_events',
+  'tenant:logs:audit_trail',
+  // データアップロードとマッピング関連権限（自テナントのみ）
+  'tenant:data_upload:manage',
+  'tenant:data_upload:view_own',
+  'tenant:data_upload:process',
+  'tenant:data_upload:validate',
+  'tenant:mapping:create',
+  'tenant:mapping:edit_own',
+  'tenant:mapping:view_own',
+  'tenant:mapping:use_templates',
+  'tenant:template:create_own',
+  'tenant:template:manage_own',
+  'tenant:template:request_sharing',
+  'tenant:encryption:own_keys',
+  'tenant:ai_consent:manage'
 ];
 
 // 一般ユーザー権限
@@ -240,7 +285,19 @@ function getRequiredPermissionForPath(path: string, method: string): string | nu
     
     // 一般機能
     '/api/account': 'user:profile:view',
-    '/api/tenant/current': 'user:dashboard:view'
+    '/api/tenant/current': 'user:dashboard:view',
+    
+    // データアップロードとマッピング機能
+    '/api/data-upload': 'tenant:data_upload:manage',
+    '/api/data-upload/global': 'system:data_upload:view_all_tenants',
+    '/api/data-mapping': 'tenant:mapping:create',
+    '/api/data-mapping/global': 'system:mapping:cross_tenant_view',
+    '/api/templates': 'tenant:template:create_own',
+    '/api/templates/global': 'system:template:distribute_global',
+    '/api/templates/share': 'tenant:template:request_sharing',
+    '/api/encryption/keys': 'tenant:encryption:own_keys',
+    '/api/encryption/global': 'system:encryption:global_manage',
+    '/api/ai-consent': 'tenant:ai_consent:manage'
   };
 
   // メソッド別権限調整

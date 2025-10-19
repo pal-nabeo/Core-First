@@ -96,6 +96,46 @@ app.route('/api/service-provider-auth', serviceProviderAuth);
 import twoFactorAuthRoutes from './routes/two-factor-auth';
 app.route('/api/auth/two-factor', twoFactorAuthRoutes);
 
+// ログ管理API
+import logsApi from './routes/logs';
+app.use('/api/logs/*', requireTenantAdmin); // テナント管理者以上の権限が必要
+app.route('/api/logs', logsApi);
+
+// 緊急アクセス（ブレイクグラス）API
+import breakglassApi from './routes/breakglass';
+app.use('/api/breakglass/*', requireServiceProvider); // サービス提供者のみ
+app.route('/api/breakglass', breakglassApi);
+
+// データアップロードとマッピング機能API
+import dataUploadApi from './routes/data-upload';
+app.use('/api/data-upload/*', requireTenantAdmin); // テナント管理者以上の権限が必要
+app.route('/api/data-upload', dataUploadApi);
+
+// テンプレート管理API
+import templateManagementApi from './routes/template-management';
+app.use('/api/templates/*', requireTenantAdmin); // テナント管理者以上の権限が必要
+app.route('/api/templates', templateManagementApi);
+
+// 暗号化・キー管理API
+import encryptionManagementApi from './routes/encryption-management';
+app.use('/api/encryption/*', requireTenantAdmin); // テナント管理者以上の権限が必要
+app.route('/api/encryption', encryptionManagementApi);
+
+// AI学習データ同意管理API
+import aiConsentManagementApi from './routes/ai-consent-management';
+app.use('/api/ai-consent/*', requireTenantAdmin); // テナント管理者以上の権限が必要
+app.route('/api/ai-consent', aiConsentManagementApi);
+
+// フィールドアクセス制御API
+import fieldAccessControlApi from './routes/field-access-control';
+app.use('/api/field-access/*', requireTenantAdmin); // テナント管理者以上の権限が必要
+app.route('/api/field-access', fieldAccessControlApi);
+
+// クロステナント監査API
+import crossTenantAuditApi from './routes/cross-tenant-audit';
+app.use('/api/cross-tenant-audit/*', requireTenantAdmin); // テナント管理者以上の権限が必要
+app.route('/api/cross-tenant-audit', crossTenantAuditApi);
+
 // API 基本情報
 app.get('/api', (c) => {
   return c.json({
@@ -644,17 +684,17 @@ app.get('/admin-dashboard', (c) => {
                         <div class="flex items-center sidebar-text" id="sidebar-logo">
                             <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
                                  alt="Core First Logo" 
-                                 class="w-8 h-8 mr-3 filter brightness-0 invert">
+                                 class="w-8 h-8 mr-3 filter brightness-0 invert drop-shadow-sm">
                             <div>
                                 <h3 class="text-lg font-bold">Core First</h3>
                                 <p class="text-xs opacity-90">統合管理システム</p>
                             </div>
                         </div>
                         <!-- 折りたたみ時のロゴ（画像のみ） -->
-                        <div class="sidebar-icon hidden flex items-center justify-center" id="sidebar-logo-collapsed">
+                        <div class="sidebar-icon hidden items-center justify-center" id="sidebar-logo-collapsed">
                             <img src="https://page.gensparksite.com/v1/base64_upload/1451b4a92bc5d668e9aec41baf8664c4" 
                                  alt="Core First Logo" 
-                                 class="w-8 h-8 filter brightness-0 invert">
+                                 class="w-8 h-8 filter brightness-0 invert drop-shadow-sm">
                         </div>
                     </div>
 
@@ -899,9 +939,9 @@ app.get('/admin-dashboard', (c) => {
                                         <i class="fas fa-shield-alt mr-3 text-gray-400"></i>
                                         セキュリティ設定
                                     </a>
-                                    <a href="/dashboard" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <a href="/tenant-dashboard" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                         <i class="fas fa-tachometer-alt mr-3 text-gray-400"></i>
-                                        CLOダッシュボード
+                                        テナント管理画面
                                     </a>
                                 </div>
                                 

@@ -210,13 +210,16 @@ function setupEventListeners() {
             e.preventDefault();
             console.log('Switch to tenant button clicked');
             if (confirm('テナント管理画面に切り替えますか？\n（サービス利用者側の管理機能に移動します）')) {
-                console.log('Redirecting to /admin');
-                window.location.href = '/admin';
+                console.log('Redirecting to /tenant-dashboard');
+                window.location.href = '/tenant-dashboard';
             }
         });
     } else {
         console.log('Switch to tenant button not found');
     }
+    
+    // ユーザーメニューのドロップダウン機能
+    setupUserMenuDropdown();
     
     // プロフィール設定ボタン
     const profileButton = document.getElementById('profile-button');
@@ -1753,4 +1756,80 @@ function renderProfile() {
             </div>
         </div>
     `;
+}
+
+// ユーザーメニューのドロップダウン機能
+function toggleUserMenu() {
+    const userMenu = document.getElementById('user-menu');
+    if (userMenu) {
+        if (userMenu.classList.contains('hidden')) {
+            userMenu.classList.remove('hidden');
+            console.log('User menu opened');
+        } else {
+            userMenu.classList.add('hidden');
+            console.log('User menu closed');
+        }
+    } else {
+        console.log('User menu element not found');
+    }
+}
+
+function setupUserMenuDropdown() {
+    // ユーザーメニューボタンにイベントリスナーを追加
+    const userMenuButton = document.getElementById('user-menu-button');
+    if (userMenuButton) {
+        userMenuButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleUserMenu();
+        });
+        console.log('User menu button event listener added');
+    } else {
+        console.log('User menu button not found');
+    }
+    
+    // ドキュメント全体のクリックでメニューを閉じる
+    document.addEventListener('click', function(e) {
+        const userMenu = document.getElementById('user-menu');
+        const userMenuButton = document.getElementById('user-menu-button');
+        
+        if (userMenu && userMenuButton && 
+            !userMenu.contains(e.target) && 
+            !userMenuButton.contains(e.target)) {
+            userMenu.classList.add('hidden');
+        }
+    });
+    
+    console.log('User menu dropdown setup completed');
+}
+
+// サイドバー折りたたみ機能
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarLogo = document.getElementById('sidebar-logo');
+    const sidebarLogoCollapsed = document.getElementById('sidebar-logo-collapsed');
+    
+    if (sidebar) {
+        if (sidebar.classList.contains('collapsed')) {
+            // 展開する
+            sidebar.classList.remove('collapsed');
+            if (sidebarLogo) {
+                sidebarLogo.classList.remove('hidden');
+            }
+            if (sidebarLogoCollapsed) {
+                sidebarLogoCollapsed.classList.add('hidden');
+            }
+            console.log('Sidebar expanded');
+        } else {
+            // 折りたたむ
+            sidebar.classList.add('collapsed');
+            if (sidebarLogo) {
+                sidebarLogo.classList.add('hidden');
+            }
+            if (sidebarLogoCollapsed) {
+                sidebarLogoCollapsed.classList.remove('hidden');
+            }
+            console.log('Sidebar collapsed');
+        }
+    }
 }
