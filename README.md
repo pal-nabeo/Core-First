@@ -1,5 +1,8 @@
 # Core First 統合管理システム
 
+[![Deploy to Cloudflare Pages](https://github.com/pal-nabeo/Core-First/actions/workflows/deploy.yml/badge.svg)](https://github.com/pal-nabeo/Core-First/actions/workflows/deploy.yml)
+[![Run Tests](https://github.com/pal-nabeo/Core-First/actions/workflows/test.yml/badge.svg)](https://github.com/pal-nabeo/Core-First/actions/workflows/test.yml)
+
 効率的な統合管理で、ビジネスを加速させるCLO（Chief Logistics Officer）向けマルチテナント対応SaaSサービス
 
 ## 🚀 プロジェクトステータス（2025-10-19更新）
@@ -24,6 +27,13 @@
 - **データベース**: Cloudflare D1 (SQLite)
 - **開発ツール**: Vite v6.3.6, Wrangler v4.42.0
 - **プロセス管理**: PM2
+- **CI/CD**: GitHub Actions
+
+### デプロイメント
+- **本番URL**: `https://corefirst-webapp.pages.dev` (設定後)
+- **デプロイ方法**: GitHubへのpushで自動デプロイ
+- **詳細手順**: [DEPLOYMENT.md](./DEPLOYMENT.md) を参照
+- **セットアップガイド**: [CLOUDFLARE_SETUP_STEPS.md](./CLOUDFLARE_SETUP_STEPS.md) を参照
 
 ## プロジェクト概要
 
