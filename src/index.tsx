@@ -4668,7 +4668,7 @@ app.get('/tenant-dashboard', (c) => {
             
             function openRoleManagement() {
                 // 権限管理画面に遷移（将来実装予定）
-                alert('権限管理画面は現在開発中です。\n現在はユーザー管理画面からユーザーごとに権限を設定できます。');
+                alert('権限管理画面は現在開発中です。\\n現在はユーザー管理画面からユーザーごとに権限を設定できます。');
                 window.location.href = '/dashboard';
             }
             
