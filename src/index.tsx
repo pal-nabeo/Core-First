@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serveStatic } from 'hono/cloudflare-workers';
 import { auth } from './routes/auth-simple';
-import { tenantMiddleware, securityHeaders } from './middleware/auth';
+import { tenantMiddleware, securityHeaders, requireAuth } from './middleware/auth';
 import { licenseCheckMiddleware } from './middleware/license';
 import { roleSeparationMiddleware, requireServiceProvider, requireTenantAdmin } from './middleware/role-separation';
 import { requireTwoFactorAuth } from './middleware/two-factor-auth';
@@ -120,6 +120,28 @@ app.route('/api/templates', templateManagementApi);
 import encryptionManagementApi from './routes/encryption-management';
 app.use('/api/encryption/*', requireTenantAdmin); // テナント管理者以上の権限が必要
 app.route('/api/encryption', encryptionManagementApi);
+
+// AI分析API
+import aiAnalysisApi from './routes/ai-analysis';
+// カテゴリ一覧は認証不要、その他は認証必要
+app.use('/api/ai-analysis/*', async (c, next) => {
+  if (c.req.path === '/api/ai-analysis/categories') {
+    return next();
+  }
+  return requireAuth(c, next);
+});
+app.route('/api/ai-analysis', aiAnalysisApi);
+
+// チャットAI API
+import chatAiApi from './routes/chat-ai';
+// クイック質問は認証不要、その他は認証必要
+app.use('/api/chat/*', async (c, next) => {
+  if (c.req.path === '/api/chat/quick-questions') {
+    return next();
+  }
+  return requireAuth(c, next);
+});
+app.route('/api/chat', chatAiApi);
 
 // AI学習データ同意管理API
 import aiConsentManagementApi from './routes/ai-consent-management';
@@ -4510,7 +4532,7 @@ app.get('/tenant-dashboard', (c) => {
                                 <span class="font-semibold text-blue-600">50名まで</span>
                             </div>
                         </div>
-                        <button class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm transition-colors">
+                        <button onclick="openUserManagement()" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm transition-colors">
                             ユーザー管理を開く
                         </button>
                     </div>
@@ -4539,7 +4561,7 @@ app.get('/tenant-dashboard', (c) => {
                                 <span class="font-semibold">2名</span>
                             </div>
                         </div>
-                        <button class="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-md text-sm transition-colors">
+                        <button onclick="openRoleManagement()" class="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-md text-sm transition-colors">
                             権限管理を開く
                         </button>
                     </div>
@@ -4567,7 +4589,7 @@ app.get('/tenant-dashboard', (c) => {
                                 <div class="bg-green-600 h-2 rounded-full" style="width: 24%"></div>
                             </div>
                         </div>
-                        <button class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white py-2 rounded-md text-sm transition-colors">
+                        <button onclick="openUsageDetails()" class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white py-2 rounded-md text-sm transition-colors">
                             詳細を確認
                         </button>
                     </div>
@@ -4635,9 +4657,24 @@ app.get('/tenant-dashboard', (c) => {
         
         <script>
             function switchToProviderView() {
-                if (confirm('統合管理画面に切り替えますか？\n（サービス提供者側の管理機能に移動します）')) {
-                    window.location.href = '/admin-dashboard';
-                }
+                // 統合管理画面（サービス提供者側）に遷移
+                window.location.href = '/admin-dashboard';
+            }
+            
+            function openUserManagement() {
+                // ユーザー管理画面に遷移
+                window.location.href = '/dashboard';
+            }
+            
+            function openRoleManagement() {
+                // 権限管理画面に遷移（将来実装予定）
+                alert('権限管理画面は現在開発中です。\n現在はユーザー管理画面からユーザーごとに権限を設定できます。');
+                window.location.href = '/dashboard';
+            }
+            
+            function openUsageDetails() {
+                // 利用状況詳細画面に遷移（将来実装予定）
+                alert('利用状況詳細画面は現在開発中です。');
             }
             
             function logout() {
