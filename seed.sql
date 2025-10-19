@@ -1,9 +1,9 @@
 -- PAL物流SaaS - テストデータ投入
 -- 初期セットアップとデモデータ
 
--- 最初にシステムテナントを作成
+-- 最初にシステムテナントを作成（PAL Style）
 INSERT OR IGNORE INTO tenants (id, name, subdomain, domain_allowlist, plan_id, status, company_type, company_size) VALUES 
-  ('system', 'System Tenant', 'system', '[]', 'enterprise', 'active', 'system', 'enterprise');
+  ('system', 'PAL Style サービス提供者', 'pal-style', '["pal-style.co.jp"]', 'unlimited', 'active', 'service_provider', 'enterprise');
 
 -- 1. システム標準ロールの作成
 INSERT OR IGNORE INTO roles (id, tenant_id, name, display_name, description, is_system_role, permissions) VALUES 
@@ -53,8 +53,8 @@ INSERT OR IGNORE INTO organization_units (id, tenant_id, name, code, unit_type, 
 -- 5. テストユーザーの作成
 -- パスワードは全て "password123" のbcryptハッシュ: $2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewMLaACl3PGec4Zy
 INSERT OR IGNORE INTO users (id, tenant_id, email, display_name, hashed_password, password_algo, status, email_verified, created_at) VALUES 
-  -- システム統合管理者
-  ('user_system_admin', 'system', 'system@corefirst.com', 'システム統合管理者', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewMLaACl3PGec4Zy', 'bcrypt', 'active', 1, '2024-01-01 09:00:00'),
+  -- システム統合管理者（PAL Style）
+  ('user_system_admin', 'system', 'system@pal-style.co.jp', 'PAL Style システム管理者', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewMLaACl3PGec4Zy', 'bcrypt', 'active', 1, '2024-01-01 09:00:00'),
   
   -- ABC物流のユーザー
   ('user_abc_admin', 'tenant_abc_logistics', 'admin@abc-logistics.co.jp', '田中 太郎', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewMLaACl3PGec4Zy', 'bcrypt', 'active', 1, '2024-01-01 10:00:00'),

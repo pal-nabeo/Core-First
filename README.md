@@ -17,7 +17,7 @@
 - ⚠️ **保留中のマイグレーション**: 0006-0008（ライセンス管理、セキュリティ強化、2FA）は構文エラーのため一時的に保留
 
 ### テストアカウント
-- **システム管理者**: system@corefirst.com / password
+- **システム管理者（PAL Style）**: system@pal-style.co.jp / password
 - **ABC物流管理者**: admin@abc-logistics.co.jp / password
 - **XYZ配送管理者**: admin@xyz-delivery.co.jp / password
 
@@ -30,14 +30,14 @@
 - **CI/CD**: GitHub Actions
 
 ### デプロイメント
-- **本番URL**: `https://corefirst-webapp.pages.dev` (設定後)
+- **本番URL**: `https://pal-style-webapp.pages.dev` (設定後)
 - **デプロイ方法**: GitHubへのpushで自動デプロイ
 - **詳細手順**: [DEPLOYMENT.md](./DEPLOYMENT.md) を参照
 - **セットアップガイド**: [CLOUDFLARE_SETUP_STEPS.md](./CLOUDFLARE_SETUP_STEPS.md) を参照
 
 ## プロジェクト概要
 
-**Core First**は、物流業界のCLO（最高物流責任者）向けに設計された、マルチテナント対応統合管理システムです。企業単位での完全なデータ分離と、物流業界特化の高度な分析・管理機能を提供します。
+**PAL Style CLOプラットフォーム**は、物流業界のCLO（最高物流責任者）向けに設計された、マルチテナント対応統合管理システムです。企業単位での完全なデータ分離と、物流業界特化の高度な分析・管理機能を提供します。
 
 ### 主要な特徴
 
@@ -1015,8 +1015,8 @@ git push origin feature/new-feature
 
 ## サポート
 
-- **開発者**: Core First開発チーム
-- **Email**: support@corefirst-system.com
+- **開発者**: PAL Style開発チーム
+- **Email**: support@pal-style.co.jp
 - **Documentation**: このREADME
 - **Issues**: GitHub Issues
 

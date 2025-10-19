@@ -5,13 +5,14 @@
 INSERT OR IGNORE INTO tenants (
   id, subdomain, name, plan_id, company_type, company_size, status, created_at
 ) VALUES (
-  'system', 'system', 'Core First サービス提供者', 'unlimited', 'service_provider', 'enterprise', 'active', datetime('now')
+  'system', 'pal-style', 'PAL Style サービス提供者', 'unlimited', 'service_provider', 'enterprise', 'active', datetime('now')
 );
 
 -- 1. 既存のsystemテナント情報を更新（安全に）
 UPDATE tenants 
 SET 
-    name = 'Core First サービス提供者', 
+    subdomain = 'pal-style',
+    name = 'PAL Style サービス提供者', 
     plan_id = 'unlimited', 
     company_type = 'service_provider',
     company_size = 'enterprise'
