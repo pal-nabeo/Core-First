@@ -112,6 +112,38 @@ export async function tenantMiddleware(c: Context<{ Bindings: CloudflareBindings
   }
 
   c.set('tenantSubdomain', tenantSubdomain);
+
+  // セッション検証とユーザー情報の設定
+  const sessionToken = getCookie(c, 'auth_session') || getCookie(c, 'session_token') || c.req.header('Authorization')?.replace('Bearer ', '');
+  
+  if (sessionToken) {
+    try {
+      // セッション検証とユーザー情報取得
+      const session = await c.env.DB.prepare(`
+        SELECT s.*, u.id as user_id, u.tenant_id, u.email, u.status
+        FROM sessions s
+        JOIN users u ON s.user_id = u.id
+        WHERE s.session_token = ? AND s.expires_at > datetime('now')
+      `).bind(sessionToken).first();
+
+      if (session && session.user_id) {
+        // ユーザー情報をコンテキストに設定
+        c.set('userId', session.user_id);
+        c.set('tenantId', session.tenant_id);
+        c.set('userEmail', session.email);
+        
+        // セッション最終アクセス時刻を更新
+        await c.env.DB.prepare(`
+          UPDATE sessions 
+          SET last_activity_at = CURRENT_TIMESTAMP 
+          WHERE session_token = ?
+        `).bind(sessionToken).run();
+      }
+    } catch (error) {
+      console.error('Session validation error:', error);
+    }
+  }
+
   await next();
 }
 

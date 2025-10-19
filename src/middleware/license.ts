@@ -123,7 +123,8 @@ export async function licenseCheckMiddleware(c: Context<{ Bindings: CloudflareBi
       '/api/v1/usage/record'
     ];
 
-    if (!tenantId || excludePaths.some(p => path.startsWith(p))) {
+    // systemテナントまたはチェック対象外パスの場合はスキップ
+    if (!tenantId || tenantId === 'system' || excludePaths.some(p => path.startsWith(p))) {
       return next();
     }
 
