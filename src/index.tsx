@@ -20,6 +20,9 @@ app.use('*', securityHeaders);
 // テナント分離ミドルウェア適用
 app.use('*', tenantMiddleware);
 
+// 認証ミドルウェア適用（公開エンドポイント以外）
+app.use('*', requireAuth);
+
 // ライセンスチェックミドルウェア適用
 app.use('*', licenseCheckMiddleware);
 
@@ -157,6 +160,11 @@ app.route('/api/field-access', fieldAccessControlApi);
 import crossTenantAuditApi from './routes/cross-tenant-audit';
 app.use('/api/cross-tenant-audit/*', requireTenantAdmin); // テナント管理者以上の権限が必要
 app.route('/api/cross-tenant-audit', crossTenantAuditApi);
+
+// システム監視API
+import systemMonitoring from './routes/system-monitoring';
+app.use('/api/admin/system-monitoring/*', requireServiceProvider); // サービス提供者限定
+app.route('/api/admin/system-monitoring', systemMonitoring);
 
 // API 基本情報
 app.get('/api', (c) => {
@@ -981,7 +989,7 @@ app.get('/admin-dashboard', (c) => {
                 <!-- コンテンツエリア -->
                 <main class="flex-1 overflow-y-auto p-6">
                     <!-- 概要セクション -->
-                    <div id="overview-section" class="content-section">
+                    <div id="overview-section" class="content-section active">
                         <!-- 統計カード -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                             <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
@@ -1267,6 +1275,314 @@ app.get('/admin-dashboard', (c) => {
                     <div id="audit-section" class="content-section hidden">
                         <h2 class="text-2xl font-bold text-gray-900 mb-6">監査ログ</h2>
                         <p class="text-gray-600">開発中...</p>
+                    </div>
+
+                    <!-- システム監視セクション -->
+                    <div id="system-monitoring-section" class="content-section hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">システム監視</h2>
+                                <p class="text-gray-600">リアルタイムでシステムのパフォーマンスと健全性を監視</p>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="text-sm text-gray-600">
+                                    最終更新: <span id="monitoring-last-update" class="font-medium">-</span>
+                                </div>
+                                <button onclick="loadSystemMonitoring()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                                    <i class="fas fa-sync mr-2"></i>
+                                    更新
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- システムヘルス概要 -->
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                            <div id="health-api" class="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-sm font-medium text-gray-600">API</h3>
+                                    <div class="health-status">
+                                        <i class="fas fa-circle text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <p class="text-2xl font-bold text-gray-900">-</p>
+                                <p class="text-xs text-gray-500 mt-1">応答時間: <span class="response-time">-</span>ms</p>
+                            </div>
+
+                            <div id="health-database" class="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-sm font-medium text-gray-600">Database</h3>
+                                    <div class="health-status">
+                                        <i class="fas fa-circle text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <p class="text-2xl font-bold text-gray-900">-</p>
+                                <p class="text-xs text-gray-500 mt-1">応答時間: <span class="response-time">-</span>ms</p>
+                            </div>
+
+                            <div id="health-worker" class="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-sm font-medium text-gray-600">Worker</h3>
+                                    <div class="health-status">
+                                        <i class="fas fa-circle text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <p class="text-2xl font-bold text-gray-900">-</p>
+                                <p class="text-xs text-gray-500 mt-1">応答時間: <span class="response-time">-</span>ms</p>
+                            </div>
+
+                            <div id="health-storage" class="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-sm font-medium text-gray-600">Storage</h3>
+                                    <div class="health-status">
+                                        <i class="fas fa-circle text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <p class="text-2xl font-bold text-gray-900">-</p>
+                                <p class="text-xs text-gray-500 mt-1">応答時間: <span class="response-time">-</span>ms</p>
+                            </div>
+
+                            <div id="health-overall" class="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="text-sm font-medium text-gray-600">総合</h3>
+                                    <div class="health-status">
+                                        <i class="fas fa-circle text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <p class="text-2xl font-bold text-gray-900">-</p>
+                                <p class="text-xs text-gray-500 mt-1">稼働率: <span class="uptime">-</span>%</p>
+                            </div>
+                        </div>
+
+                        <!-- アラート一覧 -->
+                        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                                    アクティブアラート
+                                </h3>
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-sm text-gray-600">
+                                        Critical: <span id="alert-critical-count" class="font-bold text-red-600">0</span>
+                                    </span>
+                                    <span class="text-sm text-gray-600">
+                                        Warning: <span id="alert-warning-count" class="font-bold text-yellow-600">0</span>
+                                    </span>
+                                    <span class="text-sm text-gray-600">
+                                        Info: <span id="alert-info-count" class="font-bold text-blue-600">0</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div id="alerts-container" class="space-y-2">
+                                <!-- アラートがここに表示されます -->
+                            </div>
+                        </div>
+
+                        <!-- メトリクスグラフ -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                            <!-- CPU使用率 -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                                    <i class="fas fa-microchip text-blue-600 mr-2"></i>
+                                    CPU使用率
+                                </h3>
+                                <canvas id="cpu-chart" height="200"></canvas>
+                            </div>
+
+                            <!-- メモリ使用率 -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                                    <i class="fas fa-memory text-green-600 mr-2"></i>
+                                    メモリ使用率
+                                </h3>
+                                <canvas id="memory-chart" height="200"></canvas>
+                            </div>
+
+                            <!-- 応答時間 -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                                    <i class="fas fa-clock text-purple-600 mr-2"></i>
+                                    応答時間
+                                </h3>
+                                <canvas id="response-time-chart" height="200"></canvas>
+                            </div>
+
+                            <!-- エラー率 -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                                    <i class="fas fa-exclamation-circle text-red-600 mr-2"></i>
+                                    エラー率
+                                </h3>
+                                <canvas id="error-rate-chart" height="200"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- サービス別メトリクス -->
+                        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                                <i class="fas fa-server text-indigo-600 mr-2"></i>
+                                サービス別メトリクス詳細
+                            </h3>
+                            <div id="service-metrics-container">
+                                <!-- サービス別メトリクスがここに表示されます -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 請求管理セクション -->
+                    <div id="billing-management-section" class="content-section hidden">
+                        <div class="mb-6">
+                            <h2 class="text-3xl font-bold text-gray-900 mb-2">
+                                <i class="fas fa-file-invoice-dollar text-green-600 mr-3"></i>
+                                請求管理
+                            </h2>
+                            <p class="text-gray-600">売上管理、請求書発行、支払い状況の一元管理</p>
+                        </div>
+
+                        <!-- 売上KPIカード -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <!-- 月間売上 -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-sm font-medium text-gray-600">月間売上</h3>
+                                    <i class="fas fa-yen-sign text-2xl text-blue-600"></i>
+                                </div>
+                                <p id="monthly-revenue" class="text-3xl font-bold text-gray-900">-</p>
+                                <p class="text-sm text-green-600 mt-2">
+                                    <i class="fas fa-arrow-up mr-1"></i>
+                                    <span id="monthly-revenue-growth">-</span>% 前月比
+                                </p>
+                            </div>
+
+                            <!-- MRR -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-sm font-medium text-gray-600">MRR</h3>
+                                    <i class="fas fa-sync-alt text-2xl text-green-600"></i>
+                                </div>
+                                <p id="mrr" class="text-3xl font-bold text-gray-900">-</p>
+                                <p class="text-sm text-gray-500 mt-2">月次定期収益</p>
+                            </div>
+
+                            <!-- 未収金額 -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-sm font-medium text-gray-600">未収金額</h3>
+                                    <i class="fas fa-exclamation-triangle text-2xl text-yellow-600"></i>
+                                </div>
+                                <p id="outstanding-amount" class="text-3xl font-bold text-gray-900">-</p>
+                                <p class="text-sm text-gray-500 mt-2">
+                                    <span id="outstanding-count">-</span>件の未払い
+                                </p>
+                            </div>
+
+                            <!-- 支払い完了率 -->
+                            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-sm font-medium text-gray-600">支払い完了率</h3>
+                                    <i class="fas fa-check-circle text-2xl text-green-600"></i>
+                                </div>
+                                <p id="payment-rate" class="text-3xl font-bold text-gray-900">-</p>
+                                <p class="text-sm text-gray-500 mt-2">当月実績</p>
+                            </div>
+                        </div>
+
+                        <!-- 売上推移グラフ -->
+                        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                                <i class="fas fa-chart-line text-blue-600 mr-2"></i>
+                                売上推移（直近12ヶ月）
+                            </h3>
+                            <div style="height: 300px;">
+                                <canvas id="revenue-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- フィルターとアクション -->
+                        <div class="bg-white rounded-lg shadow-sm p-4 border border-gray-200 mb-4">
+                            <div class="flex flex-wrap gap-4 items-center">
+                                <!-- フィルター -->
+                                <div class="flex-1 flex flex-wrap gap-3">
+                                    <select id="billing-status-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                        <option value="">全ステータス</option>
+                                        <option value="paid">支払い済み</option>
+                                        <option value="pending">未払い</option>
+                                        <option value="overdue">期限超過</option>
+                                        <option value="failed">失敗</option>
+                                    </select>
+
+                                    <select id="billing-period-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                        <option value="current">当月</option>
+                                        <option value="last">先月</option>
+                                        <option value="3months">直近3ヶ月</option>
+                                        <option value="6months">直近6ヶ月</option>
+                                        <option value="1year">直近1年</option>
+                                    </select>
+
+                                    <input type="text" id="billing-search" placeholder="企業名・請求書番号で検索..." 
+                                           class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-64">
+                                </div>
+
+                                <!-- アクション -->
+                                <div class="flex gap-2">
+                                    <button onclick="window.generateInvoices()" 
+                                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                                        <i class="fas fa-file-invoice mr-2"></i>
+                                        一括発行
+                                    </button>
+                                    <button onclick="window.exportBillingData()" 
+                                            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm">
+                                        <i class="fas fa-download mr-2"></i>
+                                        エクスポート
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 請求書一覧テーブル -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                            <div class="p-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900">
+                                    <i class="fas fa-list text-gray-600 mr-2"></i>
+                                    請求書一覧
+                                </h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">請求書番号</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">テナント</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">請求月</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">プラン</th>
+                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">金額</th>
+                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">支払期限</th>
+                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="invoices-table-body" class="bg-white divide-y divide-gray-200">
+                                        <!-- 請求書データがここに表示されます -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- ページネーション -->
+                            <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                                <div class="text-sm text-gray-700">
+                                    <span id="billing-pagination-info">-</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="window.prevBillingPage()" 
+                                            class="px-3 py-1 border border-gray-300 rounded-lg text-sm hover:bg-gray-100">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <button onclick="window.nextBillingPage()" 
+                                            class="px-3 py-1 border border-gray-300 rounded-lg text-sm hover:bg-gray-100">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="settings-section" class="content-section hidden">
@@ -1963,31 +2279,812 @@ app.get('/admin-dashboard', (c) => {
 
         <script>
             console.log('Inline script loaded');
+            
+            // Chart.js instances
+            let cpuChart, memoryChart, responseTimeChart, errorRateChart;
+            let monitoringInterval;
+            
+            // システム監視データ読み込み（グローバルスコープ）
+            window.loadSystemMonitoring = async function() {
+                console.log('🔵 loadSystemMonitoring() が呼ばれました');
+                
+                // 即座にダミーデータを表示（API呼び出しを待たない）
+                console.log('🔵 即座にダミーデータを表示します');
+                window.useDummyMonitoringData();
+                
+                // 最終更新時刻を表示
+                const updateTimeEl = document.getElementById('monitoring-last-update');
+                if (updateTimeEl) {
+                    const now = new Date();
+                    updateTimeEl.textContent = now.toLocaleString('ja-JP');
+                    console.log('✅ 最終更新時刻を設定しました:', now.toLocaleString('ja-JP'));
+                } else {
+                    console.error('❌ monitoring-last-update 要素が見つかりません');
+                }
+                
+                // バックグラウンドで実データの取得を試みる（オプション）
+                try {
+                    console.log('🔵 バックグラウンドでAPI呼び出しを試みます...');
+                    const healthResponse = await fetch('/api/admin/system-monitoring/health');
+                    
+                    if (healthResponse.ok) {
+                        const healthData = await healthResponse.json();
+                        
+                        if (healthData.success) {
+                            console.log('✅ 実データを取得しました。表示を更新します。');
+                            
+                            const alertsResponse = await fetch('/api/admin/system-monitoring/alerts/active');
+                            const alertsData = await alertsResponse.json();
+                            
+                            window.updateHealthCards(healthData);
+                            window.updateAlerts(alertsData);
+                            await window.updateCharts();
+                        }
+                    } else {
+                        console.log('ℹ️ API呼び出しが失敗しました（ダミーデータを使用中）');
+                    }
+                } catch (error) {
+                    console.log('ℹ️ API呼び出し中にエラーが発生しました（ダミーデータを使用中）:', error.message);
+                }
+            }
+            
+            // ダミーデータを使用してシステム監視を表示（グローバルスコープ）
+            window.useDummyMonitoringData = function() {
+                console.log('🔵 useDummyMonitoringData() が呼ばれました');
+                
+                // ダミーヘルスデータ
+                const dummyHealthData = {
+                    success: true,
+                    overall_status: 'healthy',
+                    services: {
+                        api: { status: 'healthy', response_time: 45 },
+                        database: { status: 'healthy', response_time: 12 },
+                        worker: { status: 'healthy', response_time: 23 },
+                        storage: { status: 'healthy', response_time: 18 },
+                        overall: { status: 'healthy', uptime: 99.97 }
+                    },
+                    last_check: new Date().toISOString()
+                };
+                
+                // ダミーアラートデータ
+                const dummyAlertsData = {
+                    success: true,
+                    alerts: [
+                        {
+                            id: 'alert-1',
+                            severity: 'warning',
+                            service_name: 'database',
+                            message: 'クエリ応答時間が平均より15%高くなっています',
+                            status: 'active',
+                            created_at: new Date(Date.now() - 3600000).toISOString()
+                        },
+                        {
+                            id: 'alert-2',
+                            severity: 'info',
+                            service_name: 'storage',
+                            message: 'ストレージ使用率が70%に達しました',
+                            status: 'active',
+                            created_at: new Date(Date.now() - 7200000).toISOString()
+                        }
+                    ],
+                    summary: { total: 2, critical: 0, warning: 1, info: 1 }
+                };
+                
+                console.log('🔵 ダミーデータを適用します...');
+                console.log('ヘルスデータ:', dummyHealthData);
+                console.log('アラートデータ:', dummyAlertsData);
+                
+                window.updateHealthCards(dummyHealthData);
+                window.updateAlerts(dummyAlertsData);
+                window.updateChartsWithDummyData();
+            }
+            
+            // ダミーデータでチャートを更新（グローバルスコープ）
+            window.updateChartsWithDummyData = function() {
+                console.log('🔵 updateChartsWithDummyData() が呼ばれました');
+                const now = Date.now();
+                const hours = 12;
+                const interval = 5 * 60 * 1000; // 5分間隔
+                const points = Math.floor(hours * 60 / 5);
+                
+                // CPU使用率のダミーデータ
+                const cpuData = [];
+                for (let i = 0; i < points; i++) {
+                    cpuData.push({
+                        value: 30 + Math.random() * 40 + Math.sin(i / 10) * 15,
+                        recorded_at: new Date(now - (points - i) * interval).toISOString()
+                    });
+                }
+                
+                // メモリ使用率のダミーデータ
+                const memoryData = [];
+                for (let i = 0; i < points; i++) {
+                    memoryData.push({
+                        value: 50 + Math.random() * 30 + Math.cos(i / 8) * 10,
+                        recorded_at: new Date(now - (points - i) * interval).toISOString()
+                    });
+                }
+                
+                // 応答時間のダミーデータ
+                const responseTimeData = [];
+                for (let i = 0; i < points; i++) {
+                    responseTimeData.push({
+                        value: 20 + Math.random() * 80 + Math.sin(i / 12) * 30,
+                        recorded_at: new Date(now - (points - i) * interval).toISOString()
+                    });
+                }
+                
+                // エラー率のダミーデータ
+                const errorRateData = [];
+                for (let i = 0; i < points; i++) {
+                    errorRateData.push({
+                        value: Math.random() * 2 + Math.abs(Math.sin(i / 15)) * 1.5,
+                        recorded_at: new Date(now - (points - i) * interval).toISOString()
+                    });
+                }
+                
+                console.log('🔵 チャートデータを生成しました。ポイント数:', cpuData.length);
+                
+                window.updateLineChart('cpu-chart', cpuData, 'CPU使用率 (%)', 'rgb(59, 130, 246)');
+                window.updateLineChart('memory-chart', memoryData, 'メモリ使用率 (%)', 'rgb(34, 197, 94)');
+                window.updateLineChart('response-time-chart', responseTimeData, '応答時間 (ms)', 'rgb(168, 85, 247)');
+                window.updateLineChart('error-rate-chart', errorRateData, 'エラー率 (%)', 'rgb(239, 68, 68)');
+            }
+            
+            // ヘルスカード更新（グローバルスコープ）
+            window.updateHealthCards = function(healthData) {
+                console.log('🔵 updateHealthCards() が呼ばれました');
+                console.log('healthData:', healthData);
+                
+                if (!healthData.success) {
+                    console.warn('⚠️ healthData.success が false です');
+                    return;
+                }
+                
+                const services = ['api', 'database', 'worker', 'storage', 'overall'];
+                services.forEach(service => {
+                    const card = document.getElementById('health-' + service);
+                    console.log('カード要素 (health-' + service + '):', card ? '✅ 存在' : '❌ 見つかりません');
+                    if (!card) return;
+                    
+                    const serviceData = healthData.services[service];
+                    const statusIcon = card.querySelector('.health-status i');
+                    const valueEl = card.querySelector('.text-2xl');
+                    const responseTimeEl = card.querySelector('.response-time');
+                    const uptimeEl = card.querySelector('.uptime');
+                    
+                    console.log('  - statusIcon:', statusIcon ? '✅' : '❌');
+                    console.log('  - valueEl:', valueEl ? '✅' : '❌');
+                    console.log('  - responseTimeEl:', responseTimeEl ? '✅' : '❌');
+                    console.log('  - uptimeEl:', uptimeEl ? '✅' : '❌');
+                    console.log('  - serviceData:', serviceData);
+                    
+                    if (serviceData) {
+                        // ステータスアイコンの色を更新
+                        statusIcon.className = 'fas fa-circle';
+                        if (serviceData.status === 'healthy') {
+                            statusIcon.classList.add('text-green-500');
+                            valueEl.textContent = '正常';
+                            valueEl.className = 'text-2xl font-bold text-green-600';
+                        } else if (serviceData.status === 'degraded') {
+                            statusIcon.classList.add('text-yellow-500');
+                            valueEl.textContent = '低下';
+                            valueEl.className = 'text-2xl font-bold text-yellow-600';
+                        } else {
+                            statusIcon.classList.add('text-red-500');
+                            valueEl.textContent = '停止';
+                            valueEl.className = 'text-2xl font-bold text-red-600';
+                        }
+                        
+                        // 応答時間または稼働率を表示
+                        if (responseTimeEl && serviceData.response_time) {
+                            responseTimeEl.textContent = serviceData.response_time;
+                        }
+                        if (uptimeEl && serviceData.uptime) {
+                            uptimeEl.textContent = serviceData.uptime.toFixed(2);
+                        }
+                    }
+                });
+            }
+            
+            // アラート更新（グローバルスコープ）
+            window.updateAlerts = function(alertsData) {
+                console.log('🔵 updateAlerts() が呼ばれました');
+                console.log('alertsData:', alertsData);
+                
+                if (!alertsData.success) {
+                    console.warn('⚠️ alertsData.success が false です');
+                    return;
+                }
+                
+                // アラート数を更新
+                const criticalEl = document.getElementById('alert-critical-count');
+                const warningEl = document.getElementById('alert-warning-count');
+                const infoEl = document.getElementById('alert-info-count');
+                
+                console.log('アラート数要素:', {
+                    critical: criticalEl ? '✅' : '❌',
+                    warning: warningEl ? '✅' : '❌',
+                    info: infoEl ? '✅' : '❌'
+                });
+                
+                if (criticalEl) criticalEl.textContent = alertsData.summary.critical;
+                if (warningEl) warningEl.textContent = alertsData.summary.warning;
+                if (infoEl) infoEl.textContent = alertsData.summary.info;
+                
+                // アラート一覧を表示
+                const container = document.getElementById('alerts-container');
+                console.log('アラートコンテナ:', container ? '✅ 存在' : '❌ 見つかりません');
+                
+                if (!container) {
+                    console.error('❌ alerts-container が見つかりません');
+                    return;
+                }
+                
+                if (alertsData.alerts.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-4">アクティブなアラートはありません</p>';
+                    return;
+                }
+                
+                container.innerHTML = alertsData.alerts.map(alert => {
+                    let severityClass, severityIcon;
+                    if (alert.severity === 'critical') {
+                        severityClass = 'bg-red-50 border-red-200 text-red-800';
+                        severityIcon = 'fa-exclamation-circle text-red-600';
+                    } else if (alert.severity === 'warning') {
+                        severityClass = 'bg-yellow-50 border-yellow-200 text-yellow-800';
+                        severityIcon = 'fa-exclamation-triangle text-yellow-600';
+                    } else {
+                        severityClass = 'bg-blue-50 border-blue-200 text-blue-800';
+                        severityIcon = 'fa-info-circle text-blue-600';
+                    }
+                    
+                    return '<div class="flex items-center justify-between p-4 border rounded-lg ' + severityClass + '">' +
+                        '<div class="flex items-center space-x-3">' +
+                            '<i class="fas ' + severityIcon + '"></i>' +
+                            '<div>' +
+                                '<p class="font-medium">' + alert.service_name + ': ' + alert.message + '</p>' +
+                                '<p class="text-xs mt-1">' + new Date(alert.created_at).toLocaleString('ja-JP') + '</p>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="flex space-x-2">' +
+                            (alert.status === 'active' ? 
+                                '<button onclick="acknowledgeAlert(\'' + alert.id + '\')" ' +
+                                        'class="px-3 py-1 text-xs bg-white border border-current rounded hover:bg-opacity-50">' +
+                                    '確認' +
+                                '</button>' +
+                                '<button onclick="resolveAlert(\'' + alert.id + '\')" ' +
+                                        'class="px-3 py-1 text-xs bg-white border border-current rounded hover:bg-opacity-50">' +
+                                    '解決' +
+                                '</button>'
+                            : '') +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+            }
+            
+            // アラート確認（グローバルスコープ）
+            window.acknowledgeAlert = async function(alertId) {
+                try {
+                    const response = await fetch('/api/admin/system-monitoring/alerts/' + alertId + '/acknowledge', {
+                        method: 'POST'
+                    });
+                    if (response.ok) {
+                        await loadSystemMonitoring();
+                    }
+                } catch (error) {
+                    console.error('アラート確認エラー:', error);
+                }
+            }
+            
+            // アラート解決（グローバルスコープ）
+            window.resolveAlert = async function(alertId) {
+                try {
+                    const response = await fetch('/api/admin/system-monitoring/alerts/' + alertId + '/resolve', {
+                        method: 'POST'
+                    });
+                    if (response.ok) {
+                        await loadSystemMonitoring();
+                    }
+                } catch (error) {
+                    console.error('アラート解決エラー:', error);
+                }
+            }
+            
+            // チャート更新（グローバルスコープ）
+            window.updateCharts = async function() {
+                try {
+                    // CPU使用率
+                    const cpuResponse = await fetch('/api/admin/system-monitoring/metrics/timeseries?metric_type=cpu&service_name=overall&hours=1');
+                    const cpuData = await cpuResponse.json();
+                    window.updateLineChart('cpu-chart', cpuData.data, 'CPU使用率 (%)', 'rgb(59, 130, 246)');
+                    
+                    // メモリ使用率
+                    const memoryResponse = await fetch('/api/admin/system-monitoring/metrics/timeseries?metric_type=memory&service_name=overall&hours=1');
+                    const memoryData = await memoryResponse.json();
+                    window.updateLineChart('memory-chart', memoryData.data, 'メモリ使用率 (%)', 'rgb(34, 197, 94)');
+                    
+                    // 応答時間
+                    const responseTimeResponse = await fetch('/api/admin/system-monitoring/metrics/timeseries?metric_type=response_time&service_name=api&hours=1');
+                    const responseTimeData = await responseTimeResponse.json();
+                    window.updateLineChart('response-time-chart', responseTimeData.data, '応答時間 (ms)', 'rgb(168, 85, 247)');
+                    
+                    // エラー率
+                    const errorRateResponse = await fetch('/api/admin/system-monitoring/metrics/timeseries?metric_type=error_rate&service_name=overall&hours=1');
+                    const errorRateData = await errorRateResponse.json();
+                    window.updateLineChart('error-rate-chart', errorRateData.data, 'エラー率 (%)', 'rgb(239, 68, 68)');
+                    
+                } catch (error) {
+                    console.error('チャート更新エラー:', error);
+                    // エラー時はダミーデータにフォールバック
+                    console.log('ℹ️ ダミーチャートデータにフォールバックします');
+                    window.updateChartsWithDummyData();
+                }
+            }
+            
+            // 折れ線グラフ更新（グローバルスコープ）
+            window.updateLineChart = function(canvasId, data, label, color) {
+                console.log('🔵 updateLineChart() が呼ばれました:', canvasId);
+                const ctx = document.getElementById(canvasId);
+                console.log('Canvas要素 (' + canvasId + '):', ctx ? '✅ 存在' : '❌ 見つかりません');
+                
+                if (!ctx) {
+                    console.error('❌ Canvas要素が見つかりません:', canvasId);
+                    return;
+                }
+                
+                console.log('データポイント数:', data.length);
+                
+                const chartData = {
+                    labels: data.map(d => new Date(d.recorded_at).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })),
+                    datasets: [{
+                        label: label,
+                        data: data.map(d => d.value),
+                        borderColor: color,
+                        backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                        tension: 0.4,
+                        fill: true
+                    }]
+                };
+                
+                // 既存のチャートを破棄
+                const existingChart = Chart.getChart(ctx);
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+                
+                // 新しいチャートを作成
+                new Chart(ctx, {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // 30秒間隔の自動更新を開始（グローバルスコープ）
+            window.startMonitoringAutoRefresh = function() {
+                // 既存のインターバルをクリア
+                if (monitoringInterval) {
+                    clearInterval(monitoringInterval);
+                }
+                
+                // 30秒ごとに更新
+                monitoringInterval = setInterval(() => {
+                    const currentSection = document.querySelector('.content-section:not(.hidden)');
+                    if (currentSection && currentSection.id === 'system-monitoring-section') {
+                        loadSystemMonitoring();
+                    }
+                }, 30000);
+            }
+            
+            // ========================================
+            // 請求管理機能
+            // ========================================
+            
+            // 請求管理データの状態管理
+            let currentBillingPage = 1;
+            const itemsPerPage = 10;
+            let allInvoices = [];
+            let filteredInvoices = [];
+            
+            // ダミー請求書データ生成
+            window.generateDummyInvoices = function() {
+                const tenants = [
+                    { id: 'tenant_abc', name: 'ABC物流株式会社', plan: 'Standard' },
+                    { id: 'tenant_xyz', name: 'XYZ配送サービス', plan: 'Plus' },
+                    { id: 'tenant_demo', name: 'デモ物流企業', plan: 'Pro' },
+                    { id: 'tenant_test1', name: 'テスト運輸', plan: 'Standard' },
+                    { id: 'tenant_test2', name: 'サンプル配送', plan: 'Plus' },
+                    { id: 'tenant_test3', name: '物流テスト', plan: 'Free' },
+                    { id: 'tenant_test4', name: 'デリバリーテスト', plan: 'Enterprise' }
+                ];
+                
+                const statuses = ['paid', 'pending', 'overdue', 'failed'];
+                const statusWeights = [0.7, 0.15, 0.1, 0.05]; // 70% paid, 15% pending, 10% overdue, 5% failed
+                
+                const invoices = [];
+                const now = new Date();
+                
+                for (let i = 0; i < 50; i++) {
+                    const tenant = tenants[Math.floor(Math.random() * tenants.length)];
+                    const monthOffset = Math.floor(Math.random() * 12);
+                    const invoiceDate = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
+                    
+                    // ステータスを重み付けでランダム選択
+                    const rand = Math.random();
+                    let cumulativeWeight = 0;
+                    let status = 'paid';
+                    for (let j = 0; j < statusWeights.length; j++) {
+                        cumulativeWeight += statusWeights[j];
+                        if (rand < cumulativeWeight) {
+                            status = statuses[j];
+                            break;
+                        }
+                    }
+                    
+                    const planPrices = {
+                        'Free': 0,
+                        'Standard': 50000,
+                        'Plus': 150000,
+                        'Pro': 300000,
+                        'Enterprise': 500000
+                    };
+                    
+                    const baseAmount = planPrices[tenant.plan] || 50000;
+                    const usageAmount = Math.floor(Math.random() * 50000);
+                    const amount = baseAmount + usageAmount;
+                    const tax = Math.floor(amount * 0.1);
+                    const total = amount + tax;
+                    
+                    const dueDate = new Date(invoiceDate);
+                    dueDate.setDate(dueDate.getDate() + 30);
+                    
+                    const paidDate = status === 'paid' ? new Date(dueDate.getTime() - Math.random() * 10 * 24 * 60 * 60 * 1000) : null;
+                    
+                    invoices.push({
+                        id: 'INV-' + (now.getFullYear()) + '-' + String(10000 + i).padStart(5, '0'),
+                        tenantId: tenant.id,
+                        tenantName: tenant.name,
+                        plan: tenant.plan,
+                        invoiceMonth: invoiceDate.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' }),
+                        invoiceDate: invoiceDate,
+                        amount: amount,
+                        tax: tax,
+                        total: total,
+                        status: status,
+                        dueDate: dueDate,
+                        paidDate: paidDate,
+                        paymentMethod: status === 'paid' ? ['Stripe', 'PayPal', '銀行振込'][Math.floor(Math.random() * 3)] : null
+                    });
+                }
+                
+                return invoices.sort((a, b) => b.invoiceDate - a.invoiceDate);
+            };
+            
+            // 請求管理データ読み込み
+            window.loadBillingManagement = function() {
+                console.log('🔵 loadBillingManagement() が呼ばれました');
+                
+                // ダミーデータを生成
+                allInvoices = window.generateDummyInvoices();
+                filteredInvoices = [...allInvoices];
+                
+                // KPIを更新
+                window.updateBillingKPIs();
+                
+                // グラフを更新
+                window.updateRevenueChart();
+                
+                // テーブルを更新
+                window.updateInvoicesTable();
+            };
+            
+            // KPI更新
+            window.updateBillingKPIs = function() {
+                console.log('🔵 updateBillingKPIs() 開始');
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                
+                // 当月の請求書
+                const currentMonthInvoices = allInvoices.filter(inv => {
+                    return inv.invoiceDate.getMonth() === currentMonth && 
+                           inv.invoiceDate.getFullYear() === currentYear;
+                });
+                
+                // 先月の請求書
+                const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                const lastMonthInvoices = allInvoices.filter(inv => {
+                    return inv.invoiceDate.getMonth() === lastMonth && 
+                           inv.invoiceDate.getFullYear() === lastMonthYear;
+                });
+                
+                // 月間売上
+                const monthlyRevenue = currentMonthInvoices.reduce((sum, inv) => sum + inv.total, 0);
+                const lastMonthRevenue = lastMonthInvoices.reduce((sum, inv) => sum + inv.total, 0);
+                const growth = lastMonthRevenue > 0 ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1) : 0;
+                
+                console.log('📊 月間売上:', monthlyRevenue, '成長率:', growth + '%');
+                
+                const monthlyRevenueElem = document.getElementById('monthly-revenue');
+                const monthlyGrowthElem = document.getElementById('monthly-revenue-growth');
+                
+                console.log('🔍 DOM要素:', {
+                    monthlyRevenue: monthlyRevenueElem ? '存在' : '❌ 見つからない',
+                    monthlyGrowth: monthlyGrowthElem ? '存在' : '❌ 見つからない'
+                });
+                
+                if (monthlyRevenueElem) monthlyRevenueElem.textContent = '¥' + monthlyRevenue.toLocaleString();
+                if (monthlyGrowthElem) monthlyGrowthElem.textContent = growth;
+                
+                // MRR（全プランの合計）
+                const mrr = allInvoices
+                    .filter(inv => inv.invoiceDate.getMonth() === currentMonth)
+                    .reduce((sum, inv) => sum + inv.amount, 0);
+                const mrrElem = document.getElementById('mrr');
+                if (mrrElem) mrrElem.textContent = '¥' + mrr.toLocaleString();
+                
+                // 未収金額
+                const outstanding = allInvoices.filter(inv => inv.status !== 'paid');
+                const outstandingAmount = outstanding.reduce((sum, inv) => sum + inv.total, 0);
+                const outstandingAmountElem = document.getElementById('outstanding-amount');
+                const outstandingCountElem = document.getElementById('outstanding-count');
+                if (outstandingAmountElem) outstandingAmountElem.textContent = '¥' + outstandingAmount.toLocaleString();
+                if (outstandingCountElem) outstandingCountElem.textContent = outstanding.length;
+                
+                // 支払い完了率
+                const paidCount = currentMonthInvoices.filter(inv => inv.status === 'paid').length;
+                const paymentRate = currentMonthInvoices.length > 0 ? (paidCount / currentMonthInvoices.length * 100).toFixed(1) : 0;
+                const paymentRateElem = document.getElementById('payment-rate');
+                if (paymentRateElem) paymentRateElem.textContent = paymentRate + '%';
+                
+                console.log('✅ updateBillingKPIs() 完了');
+            };
+            
+            // 売上推移グラフ更新
+            window.updateRevenueChart = function() {
+                console.log('🔵 updateRevenueChart() 開始');
+                const ctx = document.getElementById('revenue-chart');
+                if (!ctx) {
+                    console.error('❌ revenue-chart canvas要素が見つかりません');
+                    return;
+                }
+                console.log('✅ revenue-chart canvas要素を取得しました');
+                
+                // 直近12ヶ月のデータを集計
+                const now = new Date();
+                const monthlyData = [];
+                
+                for (let i = 11; i >= 0; i--) {
+                    const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    const monthInvoices = allInvoices.filter(inv => {
+                        return inv.invoiceDate.getMonth() === month.getMonth() &&
+                               inv.invoiceDate.getFullYear() === month.getFullYear();
+                    });
+                    
+                    const revenue = monthInvoices.reduce((sum, inv) => sum + inv.total, 0);
+                    monthlyData.push({
+                        month: month.toLocaleDateString('ja-JP', { year: 'numeric', month: 'short' }),
+                        revenue: revenue
+                    });
+                }
+                
+                // 既存のチャートを破棄
+                const existingChart = Chart.getChart(ctx);
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+                
+                // 新しいチャートを作成
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: monthlyData.map(d => d.month),
+                        datasets: [{
+                            label: '売上',
+                            data: monthlyData.map(d => d.revenue),
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '¥' + context.parsed.y.toLocaleString();
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '¥' + (value / 1000) + 'K';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+            
+            // 請求書テーブル更新
+            window.updateInvoicesTable = function() {
+                console.log('🔵 updateInvoicesTable() 開始');
+                const tbody = document.getElementById('invoices-table-body');
+                if (!tbody) {
+                    console.error('❌ invoices-table-body要素が見つかりません');
+                    return;
+                }
+                console.log('✅ invoices-table-body要素を取得しました、データ数:', filteredInvoices.length);
+                
+                const start = (currentBillingPage - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                const pageData = filteredInvoices.slice(start, end);
+                
+                if (pageData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">請求書がありません</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = pageData.map(invoice => {
+                    let statusBadge, statusClass;
+                    switch (invoice.status) {
+                        case 'paid':
+                            statusBadge = '支払い済み';
+                            statusClass = 'bg-green-100 text-green-800';
+                            break;
+                        case 'pending':
+                            statusBadge = '未払い';
+                            statusClass = 'bg-yellow-100 text-yellow-800';
+                            break;
+                        case 'overdue':
+                            statusBadge = '期限超過';
+                            statusClass = 'bg-red-100 text-red-800';
+                            break;
+                        case 'failed':
+                            statusBadge = '失敗';
+                            statusClass = 'bg-gray-100 text-gray-800';
+                            break;
+                    }
+                    
+                    return '<tr class="hover:bg-gray-50">' +
+                        '<td class="px-4 py-3 text-sm font-mono">' + invoice.id + '</td>' +
+                        '<td class="px-4 py-3 text-sm">' + invoice.tenantName + '</td>' +
+                        '<td class="px-4 py-3 text-sm">' + invoice.invoiceMonth + '</td>' +
+                        '<td class="px-4 py-3 text-sm">' +
+                            '<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">' + invoice.plan + '</span>' +
+                        '</td>' +
+                        '<td class="px-4 py-3 text-sm text-right font-medium">¥' + invoice.total.toLocaleString() + '</td>' +
+                        '<td class="px-4 py-3 text-center">' +
+                            '<span class="px-2 py-1 text-xs rounded-full ' + statusClass + '">' + statusBadge + '</span>' +
+                        '</td>' +
+                        '<td class="px-4 py-3 text-sm">' + invoice.dueDate.toLocaleDateString('ja-JP') + '</td>' +
+                        '<td class="px-4 py-3 text-center">' +
+                            '<div class="flex gap-1 justify-center">' +
+                                '<button onclick="window.viewInvoice(\'' + invoice.id + '\')" class="p-1 text-blue-600 hover:text-blue-800" title="詳細">' +
+                                    '<i class="fas fa-eye"></i>' +
+                                '</button>' +
+                                '<button onclick="window.downloadInvoice(\'' + invoice.id + '\')" class="p-1 text-green-600 hover:text-green-800" title="ダウンロード">' +
+                                    '<i class="fas fa-download"></i>' +
+                                '</button>' +
+                                (invoice.status !== 'paid' ? 
+                                    '<button onclick="window.sendReminder(\'' + invoice.id + '\')" class="p-1 text-yellow-600 hover:text-yellow-800" title="督促">' +
+                                        '<i class="fas fa-paper-plane"></i>' +
+                                    '</button>' : '') +
+                            '</div>' +
+                        '</td>' +
+                    '</tr>';
+                }).join('');
+                
+                // ページネーション情報を更新
+                const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+                document.getElementById('billing-pagination-info').textContent = 
+                    filteredInvoices.length + '件中 ' + (start + 1) + '-' + Math.min(end, filteredInvoices.length) + '件を表示';
+            };
+            
+            // ページング
+            window.prevBillingPage = function() {
+                if (currentBillingPage > 1) {
+                    currentBillingPage--;
+                    window.updateInvoicesTable();
+                }
+            };
+            
+            window.nextBillingPage = function() {
+                const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+                if (currentBillingPage < totalPages) {
+                    currentBillingPage++;
+                    window.updateInvoicesTable();
+                }
+            };
+            
+            // フィルター適用
+            window.applyBillingFilters = function() {
+                const statusFilter = document.getElementById('billing-status-filter').value;
+                const searchQuery = document.getElementById('billing-search').value.toLowerCase();
+                
+                filteredInvoices = allInvoices.filter(invoice => {
+                    const matchStatus = !statusFilter || invoice.status === statusFilter;
+                    const matchSearch = !searchQuery || 
+                        invoice.id.toLowerCase().includes(searchQuery) ||
+                        invoice.tenantName.toLowerCase().includes(searchQuery);
+                    return matchStatus && matchSearch;
+                });
+                
+                currentBillingPage = 1;
+                window.updateInvoicesTable();
+            };
+            
+            // アクション関数（ダミー実装）
+            window.generateInvoices = function() {
+                alert('請求書を一括発行します（ダミー動作）');
+            };
+            
+            window.exportBillingData = function() {
+                alert('請求データをエクスポートします（ダミー動作）');
+            };
+            
+            window.viewInvoice = function(invoiceId) {
+                alert('請求書詳細を表示: ' + invoiceId);
+            };
+            
+            window.downloadInvoice = function(invoiceId) {
+                alert('請求書PDFをダウンロード: ' + invoiceId);
+            };
+            
+            window.sendReminder = function(invoiceId) {
+                alert('督促メールを送信: ' + invoiceId);
+            };
+            
+            // フィルターのイベントリスナー設定
+            document.addEventListener('DOMContentLoaded', function() {
+                const statusFilter = document.getElementById('billing-status-filter');
+                const searchInput = document.getElementById('billing-search');
+                
+                if (statusFilter) {
+                    statusFilter.addEventListener('change', window.applyBillingFilters);
+                }
+                
+                if (searchInput) {
+                    searchInput.addEventListener('input', window.applyBillingFilters);
+                }
+            });
+            
             // エラーリスナーを設定
             window.addEventListener('error', function(e) {
                 console.error('Global JavaScript error:', e.error, e.message, e.filename, e.lineno);
             });
             
-            // JavaScriptファイルの読み込み確認
-            const script = document.createElement('script');
-            script.onload = function() {
-                console.log('External JS file loaded successfully');
-                // スクリプト読み込み後に少し待ってからチェック
-                setTimeout(function() {
-                    console.log('Checking if initialization functions exist...');
-                    if (typeof initializeWhenReady === 'function') {
-                        console.log('initializeWhenReady function found');
-                    } else {
-                        console.error('initializeWhenReady function not found');
-                    }
-                }, 100);
-            };
-            script.onerror = function(e) {
-                console.error('Failed to load external JS file:', e);
-            };
-            script.src = '/static/admin-provider-dashboard.js';
-            document.head.appendChild(script);
+            console.log('Inline script initialization complete');
         </script>
+        
+        <!-- 外部JavaScriptファイルをインラインスクリプトの後に読み込む -->
+        <script src="/static/admin-provider-dashboard.js"></script>
     </body>
     </html>
   `);

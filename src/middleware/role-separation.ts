@@ -113,17 +113,33 @@ export async function roleSeparationMiddleware(c: Context<{ Bindings: Cloudflare
       '/api/health',
       '/api/auth/login',
       '/api/auth/logout',
+      '/api/auth/signup',
       '/signup',
-      '/login'
+      '/login',
+      '/static',
+      '/favicon.ico'
     ];
 
     if (!userId || publicPaths.some(p => path.startsWith(p))) {
       return next();
     }
 
+    console.log('🔍 roleSeparationMiddleware:', {
+      path,
+      userId,
+      tenantId,
+      method
+    });
+
     // ユーザーコンテキスト取得
     const userContext = await getUserContext(c, userId, tenantId);
     c.set('userContext', userContext);
+    
+    console.log('✅ userContext set:', {
+      userType: userContext.userType,
+      roles: userContext.roles,
+      permissionCount: userContext.permissions.length
+    });
 
     // パス別権限チェック
     const requiredPermission = getRequiredPermissionForPath(path, method);
@@ -165,18 +181,37 @@ export async function roleSeparationMiddleware(c: Context<{ Bindings: Cloudflare
  */
 export async function requireServiceProvider(c: Context<{ Bindings: CloudflareBindings }>, next: Next) {
   const userContext = c.get('userContext') as UserContext;
+  const userId = c.get('userId');
+  const tenantId = c.get('tenantId');
+  
+  console.log('🔍 requireServiceProvider check:', {
+    hasUserContext: !!userContext,
+    userType: userContext?.userType || 'none',
+    userId,
+    tenantId,
+    path: c.req.path
+  });
   
   if (!userContext || userContext.userType !== 'service_provider') {
+    console.error('❌ Service provider check failed:', {
+      userContext: !!userContext,
+      userType: userContext?.userType,
+      required: 'service_provider'
+    });
+    
     return c.json({
       success: false,
       error: 'この機能はサービス提供者のみアクセス可能です。',
       details: {
         required_role: 'service_provider',
-        current_role: userContext?.userType || 'unknown'
+        current_role: userContext?.userType || 'unknown',
+        has_userId: !!userId,
+        has_tenantId: !!tenantId
       }
     }, 403);
   }
 
+  console.log('✅ Service provider check passed');
   return next();
 }
 

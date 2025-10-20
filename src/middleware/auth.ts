@@ -8,9 +8,37 @@ import type { CloudflareBindings, AuthContext } from '../types/auth';
  * 認証が必要なルート用ミドルウェア
  */
 export async function requireAuth(c: Context<{ Bindings: CloudflareBindings }>, next: Next) {
+  const path = c.req.path;
+  
+  // 認証不要パス
+  const publicPaths = [
+    '/api/health',
+    '/api/auth/login',
+    '/api/auth/logout',
+    '/api/auth/signup',
+    '/api/auth/forgot-password',
+    '/api/auth/reset-password',
+    '/api/test',
+    '/signup',
+    '/login',
+    '/forgot-password',
+    '/reset-password',
+    '/static',
+    '/favicon.ico'
+  ];
+  
+  // 公開パスの場合はスキップ
+  if (publicPaths.some(p => path.startsWith(p))) {
+    return next();
+  }
+  
   const sessionToken = getCookie(c, 'session_token') || c.req.header('Authorization')?.replace('Bearer ', '');
 
   if (!sessionToken) {
+    // API以外のパスの場合はログインページにリダイレクト
+    if (!path.startsWith('/api/')) {
+      return c.redirect('/login');
+    }
     return c.json({ error: 'Authentication required' }, 401);
   }
 
@@ -18,15 +46,23 @@ export async function requireAuth(c: Context<{ Bindings: CloudflareBindings }>, 
     const authContext = await validateSession(c.env.DB, sessionToken);
     
     if (!authContext) {
+      if (!path.startsWith('/api/')) {
+        return c.redirect('/login');
+      }
       return c.json({ error: 'Invalid or expired session' }, 401);
     }
 
     // コンテキストに認証情報を設定
     c.set('auth', authContext);
+    c.set('userId', authContext.user.id);
+    c.set('tenantId', authContext.user.tenant_id);
     
     await next();
   } catch (error) {
     console.error('Authentication error:', error);
+    if (!path.startsWith('/api/')) {
+      return c.redirect('/login');
+    }
     return c.json({ error: 'Authentication failed' }, 401);
   }
 }

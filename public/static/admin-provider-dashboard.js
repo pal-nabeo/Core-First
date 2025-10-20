@@ -53,8 +53,22 @@ function initializeDashboard() {
     
     // 初期セクション表示（少し遅らせる）
     setTimeout(() => {
-        console.log('Showing initial overview section...');
-        showSection('overview');
+        console.log('Checking initial section state...');
+        const overviewSection = document.getElementById('overview-section');
+        if (overviewSection && !overviewSection.classList.contains('hidden')) {
+            console.log('Overview section already visible, skipping showSection');
+            // ナビゲーションのアクティブ状態だけ更新
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const activeNavItem = document.querySelector('[data-section="overview"]');
+            if (activeNavItem) {
+                activeNavItem.classList.add('active');
+            }
+        } else {
+            console.log('Showing initial overview section...');
+            showSection('overview');
+        }
     }, 100);
 }
 
@@ -62,41 +76,39 @@ function initializeDashboard() {
 function showSection(sectionId) {
     console.log('showSection called with:', sectionId);
     
+    // ローディングスピナーを表示
+    showLoadingSpinner();
+    
     // 全セクションを非表示
     document.querySelectorAll('.content-section').forEach(section => {
         section.classList.remove('active');
-        section.style.display = 'none';
+        section.classList.add('hidden');
     });
     
-    // 指定セクションを表示（存在しない場合は作成）
+    // 指定セクションを表示（-sectionサフィックス付きで検索）
     let targetSection = document.getElementById(sectionId + '-section');
-    if (!targetSection) {
-        // HTMLの既存セクション名も確認
-        targetSection = document.getElementById(sectionId);
-    }
     
-    // 既存のセクションを使用して新しいセクションを作成
-    if (!targetSection && sectionId === 'overview' && document.getElementById('overview-section')) {
-        // overview-sectionがある場合はoverviewとして使用
-        targetSection = document.getElementById('overview-section');
-        targetSection.id = 'overview'; // IDを変更
+    if (!targetSection) {
+        // サフィックスなしでも検索
+        targetSection = document.getElementById(sectionId);
     }
     
     if (!targetSection) {
         // セクションが存在しない場合は動的に作成
+        console.warn('Section not found, creating:', sectionId);
         const mainContent = document.querySelector('main');
         if (mainContent) {
             targetSection = document.createElement('div');
-            targetSection.id = sectionId;
+            targetSection.id = sectionId + '-section';
             targetSection.className = 'content-section';
             mainContent.appendChild(targetSection);
-            console.log('Created new section:', sectionId);
+            console.log('Created new section:', targetSection.id);
         }
     }
     
     if (targetSection) {
+        targetSection.classList.remove('hidden');
         targetSection.classList.add('active');
-        targetSection.style.display = 'block';
         console.log('Showing section:', targetSection.id);
     } else {
         console.error('Could not find or create section:', sectionId);
@@ -118,8 +130,14 @@ function showSection(sectionId) {
     // ページタイトル更新
     updatePageTitle(sectionId);
     
-    // セクション別データ読み込み
-    loadSectionData(sectionId);
+    // セクション別データ読み込み（非同期で実行してスピナーを表示）
+    setTimeout(() => {
+        loadSectionData(sectionId);
+        // データ読み込み完了後、スピナーを非表示
+        setTimeout(() => {
+            hideLoadingSpinner();
+        }, 100);
+    }, 50);
     
     currentSection = sectionId;
 }
@@ -147,6 +165,33 @@ function updatePageTitle(sectionId) {
     
     document.getElementById('page-title').textContent = 'Core First 統合管理システム';
     document.getElementById('page-subtitle').textContent = titles[sectionId] || 'サービス提供者ダッシュボード';
+}
+
+// ローディングスピナー表示
+function showLoadingSpinner() {
+    let spinner = document.getElementById('loading-spinner-overlay');
+    if (!spinner) {
+        spinner = document.createElement('div');
+        spinner.id = 'loading-spinner-overlay';
+        spinner.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+                <div style="background: white; padding: 30px 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #3b82f6; margin-bottom: 15px;"></i>
+                    <p style="font-size: 16px; color: #4b5563; margin: 0;">データを読み込み中...</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(spinner);
+    }
+    spinner.style.display = 'flex';
+}
+
+// ローディングスピナー非表示
+function hideLoadingSpinner() {
+    const spinner = document.getElementById('loading-spinner-overlay');
+    if (spinner) {
+        spinner.style.display = 'none';
+    }
 }
 
 // サイドバー設定
@@ -259,6 +304,11 @@ async function loadDashboardData() {
         // KPIデータをAPIから取得
         const response = await fetch('/api/provider-dashboard/kpi');
         if (!response.ok) {
+            // 認証エラーの場合は静かにフォールバック
+            if (response.status === 403 || response.status === 401) {
+                console.log('認証が必要です。サンプルデータを使用します。');
+                throw new Error('AUTH_REQUIRED');
+            }
             throw new Error('KPIデータの取得に失敗しました');
         }
         const kpiData = await response.json();
@@ -292,7 +342,11 @@ async function loadDashboardData() {
         renderOverviewSection();
     } catch (error) {
         console.error('データ読み込みエラー:', error);
-        showAlert('データの読み込みに失敗しました', 'error');
+        
+        // 認証エラーの場合はアラートを表示しない
+        if (error.message !== 'AUTH_REQUIRED') {
+            showAlert('データの読み込みに失敗しました', 'error');
+        }
         
         // フォールバック：サンプルデータを使用
         dashboardData = {
@@ -549,11 +603,11 @@ function renderOverviewSection() {
 
 // リアルタイム監視セクション描画
 function renderRealTimeMonitoring() {
-    let section = document.getElementById('realtime-monitoring');
+    let section = document.getElementById('realtime-monitoring-section');
     if (!section) {
         console.log('Creating realtime-monitoring section...');
         section = document.createElement('div');
-        section.id = 'realtime-monitoring';
+        section.id = 'realtime-monitoring-section';
         section.className = 'content-section';
         document.querySelector('main').appendChild(section);
     }
@@ -1069,8 +1123,13 @@ window.addEventListener('beforeunload', function() {
 
 // テナント管理セクション描画
 async function renderTenantManagement() {
-    const section = document.getElementById('tenant-management');
-    if (!section) return;
+    let section = document.getElementById('tenant-management-section');
+    if (!section) {
+        section = document.createElement('div');
+        section.id = 'tenant-management-section';
+        section.className = 'content-section';
+        document.querySelector('main').appendChild(section);
+    }
     
     // テナント一覧データを取得
     let tenantsData = null;
@@ -1227,8 +1286,13 @@ function formatDate(dateString) {
 
 // 横断ユーザー管理セクション描画
 async function renderCrossTenantUsers() {
-    const section = document.getElementById('cross-tenant-users');
-    if (!section) return;
+    let section = document.getElementById('cross-tenant-users-section');
+    if (!section) {
+        section = document.createElement('div');
+        section.id = 'cross-tenant-users-section';
+        section.className = 'content-section';
+        document.querySelector('main').appendChild(section);
+    }
     
     // 横断ユーザーデータを取得
     let usersData = null;
@@ -1383,10 +1447,10 @@ async function searchCrossTenantUsers() {
 }
 
 function renderUsageAnalytics() {
-    let section = document.getElementById('usage-analytics');
+    let section = document.getElementById('usage-analytics-section');
     if (!section) {
         section = document.createElement('div');
-        section.id = 'usage-analytics';
+        section.id = 'usage-analytics-section';
         section.className = 'content-section';
         document.querySelector('main').appendChild(section);
     }
@@ -1394,10 +1458,10 @@ function renderUsageAnalytics() {
 }
 
 function renderRevenueDashboard() {
-    let section = document.getElementById('revenue-dashboard');
+    let section = document.getElementById('revenue-dashboard-section');
     if (!section) {
         section = document.createElement('div');
-        section.id = 'revenue-dashboard';
+        section.id = 'revenue-dashboard-section';
         section.className = 'content-section';
         document.querySelector('main').appendChild(section);
     }
@@ -1405,10 +1469,10 @@ function renderRevenueDashboard() {
 }
 
 function renderBillingManagement() {
-    let section = document.getElementById('billing-management');
+    let section = document.getElementById('billing-management-section');
     if (!section) {
         section = document.createElement('div');
-        section.id = 'billing-management';
+        section.id = 'billing-management-section';
         section.className = 'content-section';
         document.querySelector('main').appendChild(section);
     }
@@ -1416,10 +1480,10 @@ function renderBillingManagement() {
 }
 
 function renderSubscriptionManagement() {
-    let section = document.getElementById('subscription-management');
+    let section = document.getElementById('subscription-management-section');
     if (!section) {
         section = document.createElement('div');
-        section.id = 'subscription-management';
+        section.id = 'subscription-management-section';
         section.className = 'content-section';
         document.querySelector('main').appendChild(section);
     }
@@ -1428,8 +1492,13 @@ function renderSubscriptionManagement() {
 
 // サポートチケット管理セクション描画
 async function renderSupportTickets() {
-    const section = document.getElementById('support-tickets');
-    if (!section) return;
+    let section = document.getElementById('support-tickets-section');
+    if (!section) {
+        section = document.createElement('div');
+        section.id = 'support-tickets-section';
+        section.className = 'content-section';
+        document.querySelector('main').appendChild(section);
+    }
     
     // サポートチケットデータを取得
     let ticketsData = null;
@@ -1619,10 +1688,10 @@ function getTicketStatusLabel(status) {
 }
 
 function renderCustomerSuccess() {
-    let section = document.getElementById('customer-success');
+    let section = document.getElementById('customer-success-section');
     if (!section) {
         section = document.createElement('div');
-        section.id = 'customer-success';
+        section.id = 'customer-success-section';
         section.className = 'content-section';
         document.querySelector('main').appendChild(section);
     }
@@ -1630,21 +1699,84 @@ function renderCustomerSuccess() {
 }
 
 function renderSystemMonitoring() {
-    let section = document.getElementById('system-monitoring');
-    if (!section) {
-        section = document.createElement('div');
-        section.id = 'system-monitoring';
-        section.className = 'content-section';
-        document.querySelector('main').appendChild(section);
+    console.log('renderSystemMonitoring called');
+    
+    // HTMLにすでにセクションが存在する場合はそれを使用
+    let section = document.getElementById('system-monitoring-section');
+    if (section) {
+        console.log('Using existing system-monitoring-section from HTML');
+        
+        // loadSystemMonitoring関数の存在を確認し、利用可能になるまで待機
+        const tryLoadMonitoring = (retries = 0) => {
+            console.log(`Attempt ${retries + 1}: Checking window.loadSystemMonitoring...`);
+            
+            if (typeof window.loadSystemMonitoring === 'function') {
+                console.log('✅ window.loadSystemMonitoring found! Calling it now...');
+                window.loadSystemMonitoring();
+                
+                // 自動更新を開始
+                if (typeof window.startMonitoringAutoRefresh === 'function') {
+                    console.log('✅ window.startMonitoringAutoRefresh found! Calling it now...');
+                    window.startMonitoringAutoRefresh();
+                }
+            } else if (retries < 10) {
+                // 最大10回、100ms間隔で再試行
+                console.log(`⏳ window.loadSystemMonitoring not ready yet. Retrying in 100ms... (${retries + 1}/10)`);
+                setTimeout(() => tryLoadMonitoring(retries + 1), 100);
+            } else {
+                console.error('❌ window.loadSystemMonitoring is still not available after 10 retries!');
+                console.log('Available window functions:', Object.keys(window).filter(k => k.toLowerCase().includes('system') || k.toLowerCase().includes('monitoring') || k.toLowerCase().includes('load')));
+            }
+        };
+        
+        // 初回試行
+        tryLoadMonitoring();
+        return;
     }
-    section.innerHTML = `<div class="p-6"><h2 class="text-2xl font-bold mb-4">システム監視</h2><p class="text-gray-600">システムパフォーマンス監視機能を実装中...</p></div>`;
+    
+    // セクションが存在しない場合はエラーログ
+    console.error('system-monitoring-section not found in HTML');
+}
+
+function renderBillingManagement() {
+    console.log('renderBillingManagement called');
+    
+    // HTMLにすでにセクションが存在する場合はそれを使用
+    let section = document.getElementById('billing-management-section');
+    if (section) {
+        console.log('Using existing billing-management-section from HTML');
+        
+        // loadBillingManagement関数の存在を確認し、利用可能になるまで待機
+        const tryLoadBilling = (retries = 0) => {
+            console.log(`Attempt ${retries + 1}: Checking window.loadBillingManagement...`);
+            
+            if (typeof window.loadBillingManagement === 'function') {
+                console.log('✅ window.loadBillingManagement found! Calling it now...');
+                window.loadBillingManagement();
+            } else if (retries < 10) {
+                // 最大10回、100ms間隔で再試行
+                console.log(`⏳ window.loadBillingManagement not ready yet. Retrying in 100ms... (${retries + 1}/10)`);
+                setTimeout(() => tryLoadBilling(retries + 1), 100);
+            } else {
+                console.error('❌ window.loadBillingManagement is still not available after 10 retries!');
+                console.log('Available window functions:', Object.keys(window).filter(k => k.toLowerCase().includes('billing') || k.toLowerCase().includes('invoice')));
+            }
+        };
+        
+        // 初回試行
+        tryLoadBilling();
+        return;
+    }
+    
+    // セクションが存在しない場合はエラーログ
+    console.error('billing-management-section not found in HTML');
 }
 
 function renderAuditLogs() {
-    let section = document.getElementById('audit-logs');
+    let section = document.getElementById('audit-logs-section');
     if (!section) {
         section = document.createElement('div');
-        section.id = 'audit-logs';
+        section.id = 'audit-logs-section';
         section.className = 'content-section';
         document.querySelector('main').appendChild(section);
     }
@@ -1652,10 +1784,10 @@ function renderAuditLogs() {
 }
 
 function renderBackupManagement() {
-    let section = document.getElementById('backup-management');
+    let section = document.getElementById('backup-management-section');
     if (!section) {
         section = document.createElement('div');
-        section.id = 'backup-management';
+        section.id = 'backup-management-section';
         section.className = 'content-section';
         document.querySelector('main').appendChild(section);
     }
@@ -1663,10 +1795,10 @@ function renderBackupManagement() {
 }
 
 function renderAdminUsers() {
-    let section = document.getElementById('admin-users');
+    let section = document.getElementById('admin-users-section');
     if (!section) {
         section = document.createElement('div');
-        section.id = 'admin-users';
+        section.id = 'admin-users-section';
         section.className = 'content-section';
         document.querySelector('main').appendChild(section);
     }
@@ -1674,10 +1806,10 @@ function renderAdminUsers() {
 }
 
 function renderRolePermissions() {
-    let section = document.getElementById('role-permissions');
+    let section = document.getElementById('role-permissions-section');
     if (!section) {
         section = document.createElement('div');
-        section.id = 'role-permissions';
+        section.id = 'role-permissions-section';
         section.className = 'content-section';
         document.querySelector('main').appendChild(section);
     }
@@ -1686,10 +1818,10 @@ function renderRolePermissions() {
 
 // プロフィール設定画面描画
 function renderProfile() {
-    let section = document.getElementById('profile');
+    let section = document.getElementById('profile-section');
     if (!section) {
         section = document.createElement('div');
-        section.id = 'profile';
+        section.id = 'profile-section';
         section.className = 'content-section';
         document.querySelector('main').appendChild(section);
     }
@@ -1833,3 +1965,727 @@ function toggleSidebar() {
         }
     }
 }
+
+// ========================================
+// グローバル関数（HTMLのonclick属性から呼び出し可能）
+// ========================================
+
+// ログアウト関数
+window.logout = async function() {
+    console.log('logout function called');
+    if (confirm('ログアウトしますか？')) {
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            window.location.href = '/login';
+        } catch (error) {
+            console.error('Logout error:', error);
+            window.location.href = '/login';
+        }
+    }
+};
+
+// ユーザーメニュー切り替え
+window.toggleUserMenu = function() {
+    console.log('toggleUserMenu function called');
+    const menu = document.getElementById('user-menu');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+};
+
+// ナビゲーション関数
+window.navigateTo = function(path) {
+    console.log('navigateTo function called with:', path);
+    window.location.href = path;
+};
+
+// セクション表示関数をグローバルにエクスポート
+window.showSection = showSection;
+// ========================================
+// 請求管理機能
+// ========================================
+
+// 請求管理データの状態管理
+let currentBillingPage = 1;
+const itemsPerPage = 10;
+let allInvoices = [];
+let filteredInvoices = [];
+
+// ダミー請求書データ生成
+window.generateDummyInvoices = function() {
+    console.log('🔵 generateDummyInvoices() called');
+    const tenants = [
+        { id: 'tenant_abc', name: 'ABC物流株式会社', plan: 'Standard' },
+        { id: 'tenant_xyz', name: 'XYZ配送サービス', plan: 'Plus' },
+        { id: 'tenant_demo', name: 'デモ物流企業', plan: 'Pro' }
+    ];
+    
+    const statuses = ['paid', 'pending', 'overdue', 'failed'];
+    const invoices = [];
+    const now = new Date();
+    
+    for (let i = 0; i < 50; i++) {
+        const tenant = tenants[Math.floor(Math.random() * tenants.length)];
+        const monthOffset = Math.floor(Math.random() * 12);
+        const invoiceDate = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+        
+        const planPrices = { 'Standard': 50000, 'Plus': 150000, 'Pro': 300000 };
+        const amount = planPrices[tenant.plan] || 50000;
+        const tax = Math.round(amount * 0.1);
+        
+        invoices.push({
+            id: `INV-2024${String(i + 1).padStart(4, '0')}`,
+            tenantName: tenant.name,
+            plan: tenant.plan,
+            invoiceDate: invoiceDate,
+            dueDate: new Date(invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000),
+            amount: amount,
+            tax: tax,
+            total: amount + tax,
+            status: status
+        });
+    }
+    
+    return invoices.sort((a, b) => b.invoiceDate - a.invoiceDate);
+};
+
+// 請求管理データ読み込み
+window.loadBillingManagement = function() {
+    console.log('🔵 loadBillingManagement() が呼ばれました');
+    
+    allInvoices = window.generateDummyInvoices();
+    filteredInvoices = [...allInvoices];
+    
+    window.updateBillingKPIs();
+    window.updateRevenueChart();
+    window.updateInvoicesTable();
+};
+
+// KPI更新
+window.updateBillingKPIs = function() {
+    console.log('🔵 updateBillingKPIs() 開始');
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    // 当月の請求書
+    const currentMonthInvoices = allInvoices.filter(inv => 
+        inv.invoiceDate.getMonth() === currentMonth && inv.invoiceDate.getFullYear() === currentYear
+    );
+    
+    // 先月の請求書（成長率計算用）
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    const lastMonthInvoices = allInvoices.filter(inv => 
+        inv.invoiceDate.getMonth() === lastMonth && inv.invoiceDate.getFullYear() === lastMonthYear
+    );
+    
+    // 月間売上
+    const monthlyRevenue = currentMonthInvoices.reduce((sum, inv) => sum + inv.total, 0);
+    const lastMonthRevenue = lastMonthInvoices.reduce((sum, inv) => sum + inv.total, 0);
+    const growth = lastMonthRevenue > 0 ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1) : 0;
+    
+    const revenueElem = document.getElementById('monthly-revenue');
+    const growthElem = document.getElementById('monthly-revenue-growth');
+    if (revenueElem) revenueElem.textContent = '¥' + monthlyRevenue.toLocaleString();
+    if (growthElem) growthElem.textContent = growth;
+    
+    // MRR（月次経常収益）- 全アクティブテナントの当月分
+    const mrr = currentMonthInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+    const mrrElem = document.getElementById('mrr');
+    if (mrrElem) {
+        mrrElem.textContent = '¥' + mrr.toLocaleString();
+        console.log('✅ MRRを更新しました:', mrr);
+    }
+    
+    // 未収金額（支払い待ち・期限超過・失敗の合計）
+    const outstanding = allInvoices.filter(inv => inv.status !== 'paid');
+    const outstandingAmount = outstanding.reduce((sum, inv) => sum + inv.total, 0);
+    const outstandingAmountElem = document.getElementById('outstanding-amount');
+    const outstandingCountElem = document.getElementById('outstanding-count');
+    if (outstandingAmountElem) {
+        outstandingAmountElem.textContent = '¥' + outstandingAmount.toLocaleString();
+        console.log('✅ 未収金額を更新しました:', outstandingAmount);
+    }
+    if (outstandingCountElem) {
+        outstandingCountElem.textContent = outstanding.length;
+    }
+    
+    // 支払い完了率（当月の支払い済み / 当月の全請求書）
+    const paidCount = currentMonthInvoices.filter(inv => inv.status === 'paid').length;
+    const paymentRate = currentMonthInvoices.length > 0 
+        ? (paidCount / currentMonthInvoices.length * 100).toFixed(1) 
+        : 0;
+    const paymentRateElem = document.getElementById('payment-rate');
+    if (paymentRateElem) {
+        paymentRateElem.textContent = paymentRate + '%';
+        console.log('✅ 支払い完了率を更新しました:', paymentRate + '%');
+    }
+    
+    console.log('✅ updateBillingKPIs() 完了');
+};
+
+// グラフ更新（最適化版）
+window.updateRevenueChart = function() {
+    console.log('🔵 updateRevenueChart() 開始');
+    const canvas = document.getElementById('revenue-chart');
+    if (!canvas) {
+        console.error('❌ revenue-chart要素が見つかりません');
+        return;
+    }
+    
+    // 既存のグラフがあれば破棄
+    if (window.revenueChartInstance) {
+        window.revenueChartInstance.destroy();
+    }
+    
+    // 実際のデータから月別売上を計算
+    const now = new Date();
+    const monthlyData = [];
+    const monthLabels = [];
+    
+    for (let i = 11; i >= 0; i--) {
+        const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthInvoices = allInvoices.filter(inv => 
+            inv.invoiceDate.getFullYear() === month.getFullYear() &&
+            inv.invoiceDate.getMonth() === month.getMonth()
+        );
+        
+        const monthTotal = monthInvoices.reduce((sum, inv) => sum + inv.total, 0);
+        monthlyData.push(monthTotal);
+        monthLabels.push(`${month.getMonth() + 1}月`);
+    }
+    
+    // データの最大値を取得してY軸の範囲を設定
+    const maxValue = Math.max(...monthlyData);
+    const suggestedMax = Math.ceil(maxValue * 1.2 / 100000) * 100000; // 20%余裕を持たせて10万円単位で切り上げ
+    
+    window.revenueChartInstance = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: monthLabels,
+            datasets: [{
+                label: '売上（円）',
+                data: monthlyData,
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: 'rgb(59, 130, 246)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: { size: 12 },
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return '売上: ¥' + context.parsed.y.toLocaleString();
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    suggestedMax: suggestedMax,
+                    ticks: {
+                        callback: function(value) {
+                            return '¥' + (value / 10000).toFixed(0) + '万';
+                        },
+                        stepSize: suggestedMax / 5, // 5段階に分割
+                        font: { size: 11 }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: { size: 11 }
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+    console.log('✅ グラフを作成しました（データポイント数:', monthlyData.length, '）');
+};
+
+// テーブル更新
+window.updateInvoicesTable = function() {
+    console.log('🔵 updateInvoicesTable() 開始');
+    const tbody = document.getElementById('invoices-table-body');
+    if (!tbody) {
+        console.error('❌ invoices-table-body要素が見つかりません');
+        return;
+    }
+    
+    const pageData = filteredInvoices.slice(0, 10);
+    tbody.innerHTML = pageData.map(inv => `
+        <tr><td class="px-6 py-4">${inv.id}</td>
+        <td class="px-6 py-4">${inv.tenantName}</td>
+        <td class="px-6 py-4">¥${inv.total.toLocaleString()}</td></tr>
+    `).join('');
+    console.log('✅ テーブルを更新しました、${pageData.length}件');
+};
+
+console.log('✅ Billing management functions loaded in external JS file');
+
+// ========================================
+// システム監視機能
+// ========================================
+
+// 自動更新用のインターバルID
+let monitoringInterval = null;
+
+// システム監視データ読み込み（メイン関数）
+window.loadSystemMonitoring = async function() {
+    console.log('🔵 loadSystemMonitoring() が呼ばれました');
+    
+    // 即座にダミーデータを表示（API呼び出しを待たない）
+    console.log('🔵 即座にダミーデータを表示します');
+    window.useDummyMonitoringData();
+    
+    // 最終更新時刻を表示
+    const updateTimeEl = document.getElementById('monitoring-last-update');
+    if (updateTimeEl) {
+        const now = new Date();
+        updateTimeEl.textContent = now.toLocaleString('ja-JP');
+        console.log('✅ 最終更新時刻を設定しました:', now.toLocaleString('ja-JP'));
+    } else {
+        console.error('❌ monitoring-last-update 要素が見つかりません');
+    }
+    
+    // バックグラウンドで実データの取得を試みる（オプション）
+    try {
+        console.log('🔵 バックグラウンドでAPI呼び出しを試みます...');
+        const healthResponse = await fetch('/api/admin/system-monitoring/health');
+        
+        if (healthResponse.ok) {
+            const healthData = await healthResponse.json();
+            
+            if (healthData.success) {
+                console.log('✅ 実データを取得しました。表示を更新します。');
+                
+                const alertsResponse = await fetch('/api/admin/system-monitoring/alerts/active');
+                const alertsData = await alertsResponse.json();
+                
+                window.updateHealthCards(healthData);
+                window.updateAlerts(alertsData);
+                await window.updateCharts();
+            }
+        } else {
+            console.log('ℹ️ API呼び出しが失敗しました（ダミーデータを使用中）');
+        }
+    } catch (error) {
+        console.log('ℹ️ API呼び出し中にエラーが発生しました（ダミーデータを使用中）:', error.message);
+    }
+};
+
+// ダミーデータを使用してシステム監視を表示
+window.useDummyMonitoringData = function() {
+    console.log('🔵 useDummyMonitoringData() が呼ばれました');
+    
+    // ダミーヘルスデータ
+    const dummyHealthData = {
+        success: true,
+        overall_status: 'healthy',
+        services: {
+            api: { status: 'healthy', response_time: 45 },
+            database: { status: 'healthy', response_time: 12 },
+            worker: { status: 'healthy', response_time: 23 },
+            storage: { status: 'healthy', response_time: 18 },
+            overall: { status: 'healthy', uptime: 99.97 }
+        },
+        last_check: new Date().toISOString()
+    };
+    
+    // ダミーアラートデータ
+    const dummyAlertsData = {
+        success: true,
+        alerts: [
+            {
+                id: 'alert-1',
+                severity: 'warning',
+                service_name: 'database',
+                message: 'クエリ応答時間が平均より15%高くなっています',
+                status: 'active',
+                created_at: new Date(Date.now() - 3600000).toISOString()
+            },
+            {
+                id: 'alert-2',
+                severity: 'info',
+                service_name: 'storage',
+                message: 'ストレージ使用率が70%に達しました',
+                status: 'active',
+                created_at: new Date(Date.now() - 7200000).toISOString()
+            }
+        ],
+        summary: { total: 2, critical: 0, warning: 1, info: 1 }
+    };
+    
+    console.log('🔵 ダミーデータを適用します...');
+    console.log('ヘルスデータ:', dummyHealthData);
+    console.log('アラートデータ:', dummyAlertsData);
+    
+    window.updateHealthCards(dummyHealthData);
+    window.updateAlerts(dummyAlertsData);
+    window.updateChartsWithDummyData();
+};
+
+// ダミーデータでチャートを更新
+window.updateChartsWithDummyData = function() {
+    console.log('🔵 updateChartsWithDummyData() が呼ばれました');
+    const now = Date.now();
+    const hours = 12;
+    const interval = 5 * 60 * 1000; // 5分間隔
+    const points = Math.floor(hours * 60 / 5);
+    
+    // CPU使用率のダミーデータ
+    const cpuData = [];
+    for (let i = 0; i < points; i++) {
+        cpuData.push({
+            value: 30 + Math.random() * 40 + Math.sin(i / 10) * 15,
+            recorded_at: new Date(now - (points - i) * interval).toISOString()
+        });
+    }
+    
+    // メモリ使用率のダミーデータ
+    const memoryData = [];
+    for (let i = 0; i < points; i++) {
+        memoryData.push({
+            value: 50 + Math.random() * 30 + Math.cos(i / 8) * 10,
+            recorded_at: new Date(now - (points - i) * interval).toISOString()
+        });
+    }
+    
+    // 応答時間のダミーデータ
+    const responseTimeData = [];
+    for (let i = 0; i < points; i++) {
+        responseTimeData.push({
+            value: 20 + Math.random() * 80 + Math.sin(i / 12) * 30,
+            recorded_at: new Date(now - (points - i) * interval).toISOString()
+        });
+    }
+    
+    // エラー率のダミーデータ
+    const errorRateData = [];
+    for (let i = 0; i < points; i++) {
+        errorRateData.push({
+            value: Math.random() * 2 + Math.abs(Math.sin(i / 15)) * 1.5,
+            recorded_at: new Date(now - (points - i) * interval).toISOString()
+        });
+    }
+    
+    console.log('🔵 チャートデータを生成しました。ポイント数:', cpuData.length);
+    
+    window.updateLineChart('cpu-chart', cpuData, 'CPU使用率 (%)', 'rgb(59, 130, 246)');
+    window.updateLineChart('memory-chart', memoryData, 'メモリ使用率 (%)', 'rgb(34, 197, 94)');
+    window.updateLineChart('response-time-chart', responseTimeData, '応答時間 (ms)', 'rgb(168, 85, 247)');
+    window.updateLineChart('error-rate-chart', errorRateData, 'エラー率 (%)', 'rgb(239, 68, 68)');
+};
+
+// ヘルスカード更新
+window.updateHealthCards = function(healthData) {
+    console.log('🔵 updateHealthCards() が呼ばれました');
+    console.log('healthData:', healthData);
+    
+    if (!healthData.success) {
+        console.warn('⚠️ healthData.success が false です');
+        return;
+    }
+    
+    const services = ['api', 'database', 'worker', 'storage', 'overall'];
+    services.forEach(service => {
+        const card = document.getElementById('health-' + service);
+        console.log('カード要素 (health-' + service + '):', card ? '✅ 存在' : '❌ 見つかりません');
+        if (!card) return;
+        
+        const serviceData = healthData.services[service];
+        const statusIcon = card.querySelector('.health-status i');
+        const valueEl = card.querySelector('.text-2xl');
+        const responseTimeEl = card.querySelector('.response-time');
+        const uptimeEl = card.querySelector('.uptime');
+        
+        console.log('  - statusIcon:', statusIcon ? '✅' : '❌');
+        console.log('  - valueEl:', valueEl ? '✅' : '❌');
+        console.log('  - responseTimeEl:', responseTimeEl ? '✅' : '❌');
+        console.log('  - uptimeEl:', uptimeEl ? '✅' : '❌');
+        console.log('  - serviceData:', serviceData);
+        
+        if (serviceData) {
+            // ステータスアイコンの色を更新
+            statusIcon.className = 'fas fa-circle';
+            if (serviceData.status === 'healthy') {
+                statusIcon.classList.add('text-green-500');
+                valueEl.textContent = '正常';
+                valueEl.className = 'text-2xl font-bold text-green-600';
+            } else if (serviceData.status === 'degraded') {
+                statusIcon.classList.add('text-yellow-500');
+                valueEl.textContent = '低下';
+                valueEl.className = 'text-2xl font-bold text-yellow-600';
+            } else {
+                statusIcon.classList.add('text-red-500');
+                valueEl.textContent = '停止';
+                valueEl.className = 'text-2xl font-bold text-red-600';
+            }
+            
+            // 応答時間または稼働率を表示
+            if (responseTimeEl && serviceData.response_time) {
+                responseTimeEl.textContent = serviceData.response_time;
+            }
+            if (uptimeEl && serviceData.uptime) {
+                uptimeEl.textContent = serviceData.uptime.toFixed(2);
+            }
+        }
+    });
+};
+
+// アラート更新
+window.updateAlerts = function(alertsData) {
+    console.log('🔵 updateAlerts() が呼ばれました');
+    console.log('alertsData:', alertsData);
+    
+    if (!alertsData.success) {
+        console.warn('⚠️ alertsData.success が false です');
+        return;
+    }
+    
+    // アラート数を更新
+    const criticalEl = document.getElementById('alert-critical-count');
+    const warningEl = document.getElementById('alert-warning-count');
+    const infoEl = document.getElementById('alert-info-count');
+    
+    console.log('アラート数要素:', {
+        critical: criticalEl ? '✅' : '❌',
+        warning: warningEl ? '✅' : '❌',
+        info: infoEl ? '✅' : '❌'
+    });
+    
+    if (criticalEl) criticalEl.textContent = alertsData.summary.critical;
+    if (warningEl) warningEl.textContent = alertsData.summary.warning;
+    if (infoEl) infoEl.textContent = alertsData.summary.info;
+    
+    // アラート一覧を表示
+    const container = document.getElementById('alerts-container');
+    console.log('アラートコンテナ:', container ? '✅ 存在' : '❌ 見つかりません');
+    
+    if (!container) {
+        console.error('❌ alerts-container が見つかりません');
+        return;
+    }
+    
+    if (alertsData.alerts.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-4">アクティブなアラートはありません</p>';
+        return;
+    }
+    
+    container.innerHTML = alertsData.alerts.map(alert => {
+        let severityClass, severityIcon;
+        if (alert.severity === 'critical') {
+            severityClass = 'bg-red-50 border-red-200 text-red-800';
+            severityIcon = 'fa-exclamation-circle text-red-600';
+        } else if (alert.severity === 'warning') {
+            severityClass = 'bg-yellow-50 border-yellow-200 text-yellow-800';
+            severityIcon = 'fa-exclamation-triangle text-yellow-600';
+        } else {
+            severityClass = 'bg-blue-50 border-blue-200 text-blue-800';
+            severityIcon = 'fa-info-circle text-blue-600';
+        }
+        
+        return '<div class="flex items-center justify-between p-4 border rounded-lg ' + severityClass + '">' +
+            '<div class="flex items-center space-x-3">' +
+                '<i class="fas ' + severityIcon + '"></i>' +
+                '<div>' +
+                    '<p class="font-medium">' + alert.service_name + ': ' + alert.message + '</p>' +
+                    '<p class="text-xs mt-1">' + new Date(alert.created_at).toLocaleString('ja-JP') + '</p>' +
+                '</div>' +
+            '</div>' +
+            '<div class="flex space-x-2">' +
+                (alert.status === 'active' ? 
+                    '<button onclick="acknowledgeAlert(\'' + alert.id + '\')" ' +
+                            'class="px-3 py-1 text-xs bg-white border border-current rounded hover:bg-opacity-50">' +
+                        '確認' +
+                    '</button>' +
+                    '<button onclick="resolveAlert(\'' + alert.id + '\')" ' +
+                            'class="px-3 py-1 text-xs bg-white border border-current rounded hover:bg-opacity-50">' +
+                        '解決' +
+                    '</button>'
+                : '') +
+            '</div>' +
+        '</div>';
+    }).join('');
+};
+
+// アラート確認
+window.acknowledgeAlert = async function(alertId) {
+    try {
+        const response = await fetch('/api/admin/system-monitoring/alerts/' + alertId + '/acknowledge', {
+            method: 'POST'
+        });
+        if (response.ok) {
+            await window.loadSystemMonitoring();
+        }
+    } catch (error) {
+        console.error('アラート確認エラー:', error);
+    }
+};
+
+// アラート解決
+window.resolveAlert = async function(alertId) {
+    try {
+        const response = await fetch('/api/admin/system-monitoring/alerts/' + alertId + '/resolve', {
+            method: 'POST'
+        });
+        if (response.ok) {
+            await window.loadSystemMonitoring();
+        }
+    } catch (error) {
+        console.error('アラート解決エラー:', error);
+    }
+};
+
+// チャート更新（実データ取得）
+window.updateCharts = async function() {
+    try {
+        // CPU使用率
+        const cpuResponse = await fetch('/api/admin/system-monitoring/metrics/timeseries?metric_type=cpu&service_name=overall&hours=1');
+        const cpuData = await cpuResponse.json();
+        window.updateLineChart('cpu-chart', cpuData.data, 'CPU使用率 (%)', 'rgb(59, 130, 246)');
+        
+        // メモリ使用率
+        const memoryResponse = await fetch('/api/admin/system-monitoring/metrics/timeseries?metric_type=memory&service_name=overall&hours=1');
+        const memoryData = await memoryResponse.json();
+        window.updateLineChart('memory-chart', memoryData.data, 'メモリ使用率 (%)', 'rgb(34, 197, 94)');
+        
+        // 応答時間
+        const responseTimeResponse = await fetch('/api/admin/system-monitoring/metrics/timeseries?metric_type=response_time&service_name=api&hours=1');
+        const responseTimeData = await responseTimeResponse.json();
+        window.updateLineChart('response-time-chart', responseTimeData.data, '応答時間 (ms)', 'rgb(168, 85, 247)');
+        
+        // エラー率
+        const errorRateResponse = await fetch('/api/admin/system-monitoring/metrics/timeseries?metric_type=error_rate&service_name=overall&hours=1');
+        const errorRateData = await errorRateResponse.json();
+        window.updateLineChart('error-rate-chart', errorRateData.data, 'エラー率 (%)', 'rgb(239, 68, 68)');
+        
+    } catch (error) {
+        console.error('チャート更新エラー:', error);
+        // エラー時はダミーデータにフォールバック
+        console.log('ℹ️ ダミーチャートデータにフォールバックします');
+        window.updateChartsWithDummyData();
+    }
+};
+
+// 折れ線グラフ更新
+window.updateLineChart = function(canvasId, data, label, color) {
+    console.log('🔵 updateLineChart() が呼ばれました:', canvasId);
+    const ctx = document.getElementById(canvasId);
+    console.log('Canvas要素 (' + canvasId + '):', ctx ? '✅ 存在' : '❌ 見つかりません');
+    
+    if (!ctx) {
+        console.error('❌ Canvas要素が見つかりません:', canvasId);
+        return;
+    }
+    
+    console.log('データポイント数:', data.length);
+    
+    const chartData = {
+        labels: data.map(d => new Date(d.recorded_at).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })),
+        datasets: [{
+            label: label,
+            data: data.map(d => d.value),
+            borderColor: color,
+            backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 2,
+            pointHoverRadius: 4
+        }]
+    };
+    
+    // 既存のチャートを破棄
+    const existingChart = Chart.getChart(ctx);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+    
+    // 新しいチャートを作成
+    new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: { size: 11 }
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: { size: 10 },
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 8
+                    }
+                }
+            }
+        }
+    });
+};
+
+// 30秒間隔の自動更新を開始
+window.startMonitoringAutoRefresh = function() {
+    console.log('🔵 startMonitoringAutoRefresh() が呼ばれました');
+    
+    // 既存のインターバルをクリア
+    if (monitoringInterval) {
+        clearInterval(monitoringInterval);
+    }
+    
+    // 30秒ごとに更新
+    monitoringInterval = setInterval(() => {
+        const currentSection = document.querySelector('.content-section:not(.hidden)');
+        if (currentSection && currentSection.id === 'system-monitoring-section') {
+            console.log('⏰ 自動更新を実行します（30秒経過）');
+            window.loadSystemMonitoring();
+        }
+    }, 30000);
+    
+    console.log('✅ 自動更新インターバルを設定しました（30秒）');
+};
+
+console.log('✅ System monitoring functions loaded in external JS file');
