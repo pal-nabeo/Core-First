@@ -1385,7 +1385,9 @@ app.get('/admin-dashboard', (c) => {
                                     <i class="fas fa-microchip text-blue-600 mr-2"></i>
                                     CPU使用率
                                 </h3>
-                                <canvas id="cpu-chart" height="200"></canvas>
+                                <div style="height: 250px;">
+                                    <canvas id="cpu-chart"></canvas>
+                                </div>
                             </div>
 
                             <!-- メモリ使用率 -->
@@ -1394,7 +1396,9 @@ app.get('/admin-dashboard', (c) => {
                                     <i class="fas fa-memory text-green-600 mr-2"></i>
                                     メモリ使用率
                                 </h3>
-                                <canvas id="memory-chart" height="200"></canvas>
+                                <div style="height: 250px;">
+                                    <canvas id="memory-chart"></canvas>
+                                </div>
                             </div>
 
                             <!-- 応答時間 -->
@@ -1403,7 +1407,9 @@ app.get('/admin-dashboard', (c) => {
                                     <i class="fas fa-clock text-purple-600 mr-2"></i>
                                     応答時間
                                 </h3>
-                                <canvas id="response-time-chart" height="200"></canvas>
+                                <div style="height: 250px;">
+                                    <canvas id="response-time-chart"></canvas>
+                                </div>
                             </div>
 
                             <!-- エラー率 -->
@@ -1412,7 +1418,9 @@ app.get('/admin-dashboard', (c) => {
                                     <i class="fas fa-exclamation-circle text-red-600 mr-2"></i>
                                     エラー率
                                 </h3>
-                                <canvas id="error-rate-chart" height="200"></canvas>
+                                <div style="height: 250px;">
+                                    <canvas id="error-rate-chart"></canvas>
+                                </div>
                             </div>
                         </div>
 

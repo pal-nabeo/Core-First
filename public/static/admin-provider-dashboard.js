@@ -2601,7 +2601,7 @@ window.updateCharts = async function() {
     }
 };
 
-// 折れ線グラフ更新
+// 折れ線グラフ更新（最適化版）
 window.updateLineChart = function(canvasId, data, label, color) {
     console.log('🔵 updateLineChart() が呼ばれました:', canvasId);
     const ctx = document.getElementById(canvasId);
@@ -2614,18 +2614,47 @@ window.updateLineChart = function(canvasId, data, label, color) {
     
     console.log('データポイント数:', data.length);
     
+    // データの値を取得
+    const values = data.map(d => d.value);
+    const maxValue = Math.max(...values);
+    const minValue = Math.min(...values);
+    
+    // Y軸の範囲を計算（データに基づいて適切な範囲を設定）
+    let suggestedMin, suggestedMax, stepSize;
+    
+    if (label.includes('CPU') || label.includes('メモリ') || label.includes('エラー')) {
+        // パーセンテージ系は0-100の範囲
+        suggestedMin = 0;
+        suggestedMax = 100;
+        stepSize = 20; // 0, 20, 40, 60, 80, 100
+    } else if (label.includes('応答時間')) {
+        // 応答時間はmsで、データに基づいて範囲を決定
+        suggestedMin = 0;
+        suggestedMax = Math.ceil(maxValue * 1.2 / 50) * 50; // 50ms単位で切り上げ、20%余裕
+        stepSize = suggestedMax / 5;
+    } else {
+        // その他のメトリクスは自動計算
+        const range = maxValue - minValue;
+        suggestedMin = Math.max(0, minValue - range * 0.1);
+        suggestedMax = maxValue + range * 0.1;
+        stepSize = (suggestedMax - suggestedMin) / 5;
+    }
+    
     const chartData = {
         labels: data.map(d => new Date(d.recorded_at).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })),
         datasets: [{
             label: label,
-            data: data.map(d => d.value),
+            data: values,
             borderColor: color,
             backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
             borderWidth: 2,
             tension: 0.4,
             fill: true,
             pointRadius: 2,
-            pointHoverRadius: 4
+            pointHoverRadius: 4,
+            pointBackgroundColor: color,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1
         }]
     };
     
@@ -2645,13 +2674,40 @@ window.updateLineChart = function(canvasId, data, label, color) {
             plugins: {
                 legend: {
                     display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let labelText = context.dataset.label + ': ' + context.parsed.y.toFixed(1);
+                            if (label.includes('応答時間')) {
+                                labelText += ' ms';
+                            } else if (label.includes('CPU') || label.includes('メモリ') || label.includes('エラー')) {
+                                labelText += ' %';
+                            }
+                            return labelText;
+                        }
+                    }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
+                    suggestedMin: suggestedMin,
+                    suggestedMax: suggestedMax,
                     ticks: {
-                        font: { size: 11 }
+                        stepSize: stepSize,
+                        font: { size: 11 },
+                        callback: function(value) {
+                            if (label.includes('応答時間')) {
+                                return value.toFixed(0) + ' ms';
+                            } else if (label.includes('CPU') || label.includes('メモリ') || label.includes('エラー')) {
+                                return value.toFixed(0) + '%';
+                            }
+                            return value.toFixed(1);
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
                     }
                 },
                 x: {
@@ -2660,11 +2716,20 @@ window.updateLineChart = function(canvasId, data, label, color) {
                         maxRotation: 0,
                         autoSkip: true,
                         maxTicksLimit: 8
+                    },
+                    grid: {
+                        display: false
                     }
                 }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
             }
         }
     });
+    
+    console.log('✅ グラフを作成しました:', canvasId, '（範囲: ' + suggestedMin.toFixed(0) + ' - ' + suggestedMax.toFixed(0) + '）');
 };
 
 // 30秒間隔の自動更新を開始
